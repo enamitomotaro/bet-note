@@ -30,7 +30,7 @@ export default function DashboardLayout({
         </SidebarFooter> */}
       </Sidebar>
       <SidebarInset>
-        <AppHeader pageTitle={pageTitle} /> {/* pageTitle を AppHeader に渡す */}
+        <AppHeader pageTitle={pageTitle} navItems={navItems} /> {/* pageTitle と navItems を AppHeader に渡す */}
         <main className="flex-grow container mx-auto px-4 md:px-8 py-8 space-y-8">
           {children}
         </main>
