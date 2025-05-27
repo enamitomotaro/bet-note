@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={inter.variable}> {/* inter.variable を適用 */}
+    <html lang="ja" className={inter.variable}>
       <body className="antialiased">
         {children}
         <Toaster />
