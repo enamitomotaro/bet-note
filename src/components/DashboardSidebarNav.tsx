@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ListPlus, Brain, Trophy, PanelLeft } from 'lucide-react';
+import { Home, ListPlus, Brain, Trophy } from 'lucide-react'; // PanelLeft は不要なので削除
 import { cn } from '@/lib/utils';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarTrigger } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 
-const navItems = [
+export const navItems = [
   { href: '/dashboard', label: 'ダッシュボード', icon: Home },
   { href: '/dashboard/entries', label: '収支記録', icon: ListPlus },
   { href: '/dashboard/ai-predictor', label: 'AI予想', icon: Brain },
@@ -15,7 +15,7 @@ const navItems = [
 
 export function DashboardSidebarNav() {
   const pathname = usePathname();
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar(); // toggleSidebar はここで直接使わないので削除
 
   return (
     <>

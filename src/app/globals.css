@@ -26,7 +26,7 @@ body {
     --muted: 0 0% 90%; /* Muted background */
     --muted-foreground: 0 0% 45.1%; /* Muted text */
 
-    --accent: 40 90% 38%; /* #B8860B Calm Gold */
+    --accent: 30 35% 30%; /* #6B5B4B渋いブラウン */
     --accent-foreground: 0 0% 98%; /* Light text for accent elements */
 
     --destructive: 0 84.2% 60.2%;
@@ -34,12 +34,12 @@ body {
 
     --border: 0 0% 85%; /* Adjusted border color */
     --input: 0 0% 85%; /* Adjusted input background */
-    --ring: 40 90% 38%; /* Accent color for rings */
+    --ring: 30 35% 30%; /* Accent color for rings - 渋いブラウンに合わせる */
 
     --radius: 0.5rem;
 
     /* Chart colors - can be customized further if needed */
-    --chart-1: 40 90% 38%; /* Gold */
+    --chart-1: 30 35% 30%; /* Gold -> 渋いブラウン */
     --chart-2: 210 40% 50%; /* Muted Blue */
     --chart-3: 0 0% 50%; /* Medium Gray */
     --chart-4: 120 30% 55%; /* Muted Green */
@@ -74,18 +74,18 @@ body {
     --muted: 0 0% 25%; /* Dark muted */
     --muted-foreground: 0 0% 60%; /* Lighter muted foreground */
 
-    --accent: 40 80% 50%; /* Gold for dark mode, slightly brighter */
-    --accent-foreground: 0 0% 10%; /* Dark accent foreground */
+    --accent: 30 40% 40%; /* 渋いブラウン (ダークモード用) */
+    --accent-foreground: 0 0% 98%; /* Dark accent foreground */
 
     --destructive: 0 70% 50%; /* Dark destructive */
     --destructive-foreground: 0 0% 95%; /* Light destructive foreground */
 
     --border: 0 0% 30%; /* Dark border */
     --input: 0 0% 30%; /* Dark input */
-    --ring: 40 80% 50%; /* Accent ring for dark mode */
+    --ring: 30 40% 40%; /* Accent ring for dark mode - 渋いブラウン (ダークモード用) */
     
     /* Chart colors for dark mode */
-    --chart-1: 40 80% 50%;
+    --chart-1: 30 40% 40%;
     --chart-2: 210 50% 60%;
     --chart-3: 0 0% 70%;
     --chart-4: 120 40% 65%;
