@@ -1,10 +1,10 @@
 import type {Metadata} from 'next';
-import { Inter } from 'next/font/google'; // Geist_Sans から Inter に変更
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
-const inter = Inter({ // geistSans から inter に変更し、Inter を使用
-  variable: '--font-geist-sans', // CSS変数はそのまま利用
+const inter = Inter({
+  variable: '--font-geist-sans',
   subsets: ['latin'],
 });
 
