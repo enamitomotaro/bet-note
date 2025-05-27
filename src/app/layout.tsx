@@ -1,19 +1,12 @@
 import type {Metadata} from 'next';
-import { Geist_Sans } from 'next/font/google'; // Correct import for Geist Sans
+import { Inter } from 'next/font/google'; // Geist_Sans から Inter に変更
 import './globals.css';
-import { Toaster } from '@/components/ui/toaster'; // Import Toaster
+import { Toaster } from '@/components/ui/toaster';
 
-const geistSans = Geist_Sans({ // Correct usage
-  variable: '--font-geist-sans',
+const inter = Inter({ // geistSans から inter に変更し、Inter を使用
+  variable: '--font-geist-sans', // CSS変数はそのまま利用
   subsets: ['latin'],
 });
-
-// Geist Mono can be kept if needed, or removed if only Geist Sans is primary
-// import { Geist_Mono } from 'next/font/google';
-// const geistMono = Geist_Mono({
-//   variable: '--font-geist-mono',
-//   subsets: ['latin'],
-// });
 
 export const metadata: Metadata = {
   title: '競馬エース',
@@ -26,10 +19,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className={geistSans.variable}> {/* Apply font variable to html tag */}
-      <body className="antialiased"> {/* Removed font variables from body, they are on html */}
+    <html lang="ja" className={inter.variable}> {/* inter.variable を適用 */}
+      <body className="antialiased">
         {children}
-        <Toaster /> {/* Add Toaster here for global notifications */}
+        <Toaster />
       </body>
     </html>
   );
