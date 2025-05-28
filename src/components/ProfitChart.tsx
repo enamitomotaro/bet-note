@@ -4,21 +4,24 @@
 import { useState, useMemo, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { BetEntry, ProfitChartTimespan } from '@/lib/types';
-import { prepareProfitChartData, formatCurrency } from '@/lib/calculations';
-import { TrendingUp } from 'lucide-react';
+import { prepareProfitChartData, prepareCumulativeProfitChartData, formatCurrency } from '@/lib/calculations';
+import { TrendingUp, LineChart } from 'lucide-react';
 
 interface ProfitChartProps {
   entries: BetEntry[];
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+type ChartType = "period" | "cumulative";
+
+const CustomTooltip = ({ active, payload, label, chartType }: any) => {
   if (active && payload && payload.length) {
+    const dataName = chartType === "period" ? "期間別損益" : "累積損益";
     return (
       <div className="bg-background/80 backdrop-blur-sm p-3 rounded-md border border-border shadow-lg">
         <p className="label text-sm text-foreground">{`${label}`}</p>
-        <p className="intro text-sm text-accent">{`損益 : ${formatCurrency(payload[0].value)}`}</p>
+        <p className="intro text-sm text-accent">{`${dataName} : ${formatCurrency(payload[0].value)}`}</p>
       </div>
     );
   }
@@ -28,6 +31,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function ProfitChart({ entries }: ProfitChartProps) {
   const [timespan, setTimespan] = useState<ProfitChartTimespan>("daily");
+  const [chartType, setChartType] = useState<ChartType>("period");
   const [clientMounted, setClientMounted] = useState(false);
 
   useEffect(() => {
@@ -36,8 +40,19 @@ export function ProfitChart({ entries }: ProfitChartProps) {
 
   const chartData = useMemo(() => {
     if (!clientMounted) return [];
-    return prepareProfitChartData(entries, timespan);
-  }, [entries, timespan, clientMounted]);
+    if (chartType === "period") {
+      return prepareProfitChartData(entries, timespan);
+    }
+    return prepareCumulativeProfitChartData(entries, timespan);
+  }, [entries, timespan, chartType, clientMounted]);
+
+  const chartTitle = useMemo(() => {
+    return chartType === "period" ? "期間別損益グラフ" : "累積損益グラフ";
+  }, [chartType]);
+
+  const chartIcon = useMemo(() => {
+    return chartType === "period" ? TrendingUp : LineChart;
+  }, [chartType]);
 
   if (!clientMounted) {
     return (
@@ -45,7 +60,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
         <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-accent" />
-            損益グラフ
+            {chartTitle}
             </CardTitle>
         </CardHeader>
         <CardContent className="pt-6 h-[400px]">
@@ -58,18 +73,26 @@ export function ProfitChart({ entries }: ProfitChartProps) {
   return (
     <Card className="flex flex-col" data-ai-hint="graph finance">
       <CardHeader>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <CardTitle className="text-xl flex items-center gap-2 mb-4 md:mb-0">
-            <TrendingUp className="h-6 w-6 text-accent" />
-            損益グラフ
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <CardTitle className="text-xl flex items-center gap-2">
+            {React.createElement(chartIcon, { className: "h-6 w-6 text-accent" })}
+            {chartTitle}
           </CardTitle>
-          <Tabs defaultValue="daily" onValueChange={(value) => setTimespan(value as ProfitChartTimespan)}>
-            <TabsList>
-              <TabsTrigger value="daily">日次</TabsTrigger>
-              <TabsTrigger value="weekly">週次</TabsTrigger>
-              <TabsTrigger value="monthly">月次</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <Tabs value={chartType} onValueChange={(value) => setChartType(value as ChartType)} className="w-full sm:w-auto">
+                <TabsList className="grid grid-cols-2 w-full sm:w-auto">
+                <TabsTrigger value="period" className="text-xs px-3 py-1.5">期間別</TabsTrigger>
+                <TabsTrigger value="cumulative" className="text-xs px-3 py-1.5">累積</TabsTrigger>
+                </TabsList>
+            </Tabs>
+            <Tabs value={timespan} onValueChange={(value) => setTimespan(value as ProfitChartTimespan)} className="w-full sm:w-auto">
+                <TabsList className="grid grid-cols-3 w-full sm:w-auto">
+                <TabsTrigger value="daily" className="text-xs px-3 py-1.5">日次</TabsTrigger>
+                <TabsTrigger value="weekly" className="text-xs px-3 py-1.5">週次</TabsTrigger>
+                <TabsTrigger value="monthly" className="text-xs px-3 py-1.5">月次</TabsTrigger>
+                </TabsList>
+            </Tabs>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-6 h-[400px]">
@@ -97,8 +120,16 @@ export function ProfitChart({ entries }: ProfitChartProps) {
                 axisLine={false} 
                 tickFormatter={(value) => `${formatCurrency(value)}`}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--accent) / 0.1)' }}/>
-              <Area type="monotone" dataKey="value" stroke="hsl(var(--accent))" fillOpacity={1} fill="url(#colorProfit)" strokeWidth={2} name="損益" />
+              <Tooltip content={<CustomTooltip chartType={chartType} />} cursor={{ fill: 'hsl(var(--accent) / 0.1)' }}/>
+              <Area 
+                type="monotone" 
+                dataKey="value" 
+                stroke="hsl(var(--accent))" 
+                fillOpacity={1} 
+                fill="url(#colorProfit)" 
+                strokeWidth={2} 
+                name={chartType === "period" ? "期間別損益" : "累積損益"}
+              />
             </AreaChart>
           </ResponsiveContainer>
         ) : (
@@ -110,3 +141,4 @@ export function ProfitChart({ entries }: ProfitChartProps) {
     </Card>
   );
 }
+
