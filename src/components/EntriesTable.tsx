@@ -12,14 +12,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, ListFilter, FilterX, Pencil, Trash2 } from 'lucide-react';
+import { CalendarIcon, ListFilter, FilterX, Pencil, Trash2, Percent } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { calculateAverageRecoveryRate, formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Alert, AlertDescription, AlertTitle as UiAlertTitle } from './ui/alert'; // Renamed to avoid conflict
+import { Alert, AlertDescription, AlertTitle as UiAlertTitle } from './ui/alert';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
@@ -30,8 +30,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict with DialogTitle
 } from "@/components/ui/alert-dialog";
 
 interface EntriesTableProps {
@@ -102,7 +101,6 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     }
     setIsDeleteDialogOpen(false);
     setEntryToDeleteId(null);
-    // If the deleted entry was being edited, close the edit dialog
     if (editingEntry && editingEntry.id === entryToDeleteId) {
         handleCloseEditDialog();
     }
@@ -216,7 +214,10 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
         </CardContent>
 
         {editingEntry && (
-          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => {
+            if (!isOpen) handleCloseEditDialog(); // Ensure dialog closes correctly
+            else setIsEditDialogOpen(true);
+          }}>
             <DialogContent className="bg-card sm:max-w-md">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
@@ -227,13 +228,10 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               <EntryForm 
                 isEditMode 
                 initialData={editingEntry} 
-                onUpdateEntry={handleUpdateEntryInDialog} // Renamed from onUpdateEntry
-                onClose={handleCloseEditDialog} // This will be used by EntryForm's own submit/reset logic if needed
+                onUpdateEntry={handleUpdateEntryInDialog}
+                onClose={handleCloseEditDialog}
               />
-              <DialogFooter className="mt-6 pt-4 border-t sm:justify-between">
-                <Button variant="outline" onClick={handleCloseEditDialog} className="sm:mr-auto">
-                  キャンセル
-                </Button>
+              <DialogFooter className="mt-6 pt-4 border-t sm:justify-start"> 
                 <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
@@ -247,7 +245,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>本当に削除しますか？</AlertDialogTitle>
+            <UiAlertDialogTitle>本当に削除しますか？</UiAlertDialogTitle>
             <AlertDialogDescription>
               この操作は元に戻せません。エントリーが完全に削除されます。
             </AlertDialogDescription>
@@ -266,3 +264,4 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
+

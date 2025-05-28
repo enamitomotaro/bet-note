@@ -47,7 +47,7 @@ export function EntryForm({
   onUpdateEntry, 
   initialData, 
   isEditMode = false,
-  onClose // This prop might be called by the parent (Dialog) to close, or by the form's own logic.
+  onClose
 }: EntryFormProps) {
   const form = useForm<EntryFormValues>({
     resolver: zodResolver(formSchema),
@@ -67,7 +67,7 @@ export function EntryForm({
         betAmount: initialData.betAmount,
         payoutAmount: initialData.payoutAmount,
       });
-    } else if (!isEditMode) { // Reset only if not in edit mode and no initial data (i.e. for add mode)
+    } else if (!isEditMode) { 
       form.reset({
         date: new Date(),
         raceName: "",
@@ -86,20 +86,18 @@ export function EntryForm({
       onUpdateEntry(initialData.id, entryData);
     } else if (onAddEntry) {
       onAddEntry(entryData);
-      form.reset({ // Reset to defaults for "add new" form after successful submission
+      form.reset({ 
         date: new Date(),
         raceName: "",
         betAmount: 100,
         payoutAmount: 0,
       });
     }
-    // onClose is typically called by the parent dialog after successful submission,
-    // or by a dedicated cancel button within the form if it's not in a dialog.
-    if (onClose && isEditMode) onClose(); // Close dialog after update
+    if (onClose && isEditMode) onClose(); 
   }
 
   const cardTitleText = isEditMode ? "エントリーを編集" : "新しいエントリー記録";
-  const submitButtonText = isEditMode ? "更新する" : "記録を追加";
+  const submitButtonText = isEditMode ? "更新" : "記録を追加";
   const SubmitIcon = isEditMode ? Edit3 : PlusCircle;
 
   return (
@@ -198,8 +196,6 @@ export function EntryForm({
               />
             </div>
             <div className="flex justify-end gap-2">
-              {/* Cancel button is only shown in non-edit mode (add mode)
-                  In edit mode, cancel is handled by the DialogFooter in EntriesTable */}
               {!isEditMode && onClose && (
                 <Button type="button" variant="outline" onClick={() => {
                   form.reset({
@@ -208,7 +204,7 @@ export function EntryForm({
                     betAmount: 100,
                     payoutAmount: 0,
                   });
-                  if(onClose) onClose(); // If an onClose is provided for add mode (e.g. if it were in a dialog)
+                  if(onClose) onClose();
                 }}>
                   リセット
                 </Button>
