@@ -1,11 +1,13 @@
+
 "use client";
 
 import { useMemo, useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { BetEntry, ChartDataPoint } from '@/lib/types';
-import { prepareRoiChartData, formatPercentage } from '@/lib/calculations';
+import type { BetEntry } from '@/lib/types';
+import { formatPercentage } from '@/lib/calculations';
 import { Percent } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface RoiChartProps {
   entries: BetEntry[];
@@ -42,14 +44,14 @@ export function RoiChart({ entries }: RoiChartProps) {
 
   if (!clientMounted) {
     return (
-        <Card data-ai-hint="bar chart finance">
+        <Card className="flex flex-col h-full" data-ai-hint="bar chart finance">
         <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
             <Percent className="h-6 w-6 text-accent" />
             ROIグラフ (直近最大10件)
             </CardTitle>
         </CardHeader>
-        <CardContent className="h-[350px]">
+        <CardContent className="flex-grow pt-6">
             <p>読み込み中...</p>
         </CardContent>
         </Card>
@@ -57,14 +59,14 @@ export function RoiChart({ entries }: RoiChartProps) {
   }
 
   return (
-    <Card data-ai-hint="bar chart finance">
+    <Card className="flex flex-col h-full" data-ai-hint="bar chart finance">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           <Percent className="h-6 w-6 text-accent" />
           ROIグラフ (直近最大10件)
         </CardTitle>
       </CardHeader>
-      <CardContent className="h-[350px] pt-6">
+      <CardContent className="flex-grow pt-6">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>

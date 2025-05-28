@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { BarChart, LineChart, AreaChart, Bar, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { BetEntry, ChartDataPoint, ProfitChartTimespan } from '@/lib/types';
+import type { BetEntry, ProfitChartTimespan } from '@/lib/types';
 import { prepareProfitChartData, formatCurrency } from '@/lib/calculations';
 import { TrendingUp } from 'lucide-react';
 
@@ -40,14 +41,14 @@ export function ProfitChart({ entries }: ProfitChartProps) {
 
   if (!clientMounted) {
     return (
-        <Card className="mb-8" data-ai-hint="graph finance">
+        <Card className="flex flex-col h-full" data-ai-hint="graph finance">
         <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-accent" />
             損益グラフ
             </CardTitle>
         </CardHeader>
-        <CardContent className="h-[350px]">
+        <CardContent className="flex-grow pt-6">
             <p>読み込み中...</p>
         </CardContent>
         </Card>
@@ -55,7 +56,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
   }
 
   return (
-    <Card className="mb-8" data-ai-hint="graph finance">
+    <Card className="flex flex-col h-full" data-ai-hint="graph finance">
       <CardHeader>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <CardTitle className="text-xl flex items-center gap-2 mb-4 md:mb-0">
@@ -71,7 +72,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
           </Tabs>
         </div>
       </CardHeader>
-      <CardContent className="h-[350px] pt-6">
+      <CardContent className="flex-grow pt-6">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>

@@ -39,7 +39,7 @@ export default function DashboardLayout({
                 <TabsTrigger
                   key={item.href}
                   value={item.href}
-                  className="w-full md:w-auto px-2 py-2 text-xs md:text-sm md:px-4 md:py-2"
+                  className="w-full md:w-auto px-2 py-2 text-xs md:text-sm md:px-4 md:py-1.5"
                 >
                   <item.icon className="h-4 w-4 mr-0 md:mr-2" />
                   <span className="hidden md:inline min-w-32">{item.label}</span>
