@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -11,7 +12,7 @@ import { v4 as uuidv4 } from 'uuid'; // For generating unique IDs
 
 const calculateEntryFields = (betAmount: number, payoutAmount: number): Pick<BetEntry, 'profitLoss' | 'roi'> => {
   const profitLoss = payoutAmount - betAmount;
-  const roi = betAmount > 0 ? (profitLoss / betAmount) * 100 : 0;
+  const roi = betAmount > 0 ? (payoutAmount / betAmount) * 100 : 0; // Changed to Payout Rate
   return { profitLoss, roi };
 };
 
@@ -44,3 +45,4 @@ export function useBetEntries() {
 
   return { entries: loadedEntries, addEntry, deleteEntry, isLoaded };
 }
+

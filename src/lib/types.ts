@@ -1,3 +1,4 @@
+
 export interface BetEntry {
   id: string;
   date: string; // ISO string format: "YYYY-MM-DD"
@@ -5,21 +6,22 @@ export interface BetEntry {
   betAmount: number;
   payoutAmount: number;
   profitLoss: number; // Calculated: payoutAmount - betAmount
-  roi: number; // Calculated: (profitLoss / betAmount) * 100, handle betAmount = 0
+  roi: number; // Calculated: (payoutAmount / betAmount) * 100. Represents Payout Rate (回収率). Handles betAmount = 0.
 }
 
 export interface DashboardStats {
   totalInvestment: number;
   totalPayout: number;
   netProfit: number;
-  overallRoi: number;
+  overallRoi: number; // Net profit based ROI: (netProfit / totalInvestment) * 100
   hitRate: number; // Percentage
   winningStreak: number;
 }
 
 export interface ChartDataPoint {
   name: string; // Date, week, or month label
-  value: number; // Profit/loss or ROI
+  value: number; // Profit/loss or ROI/Payout Rate
 }
 
 export type ProfitChartTimespan = "daily" | "weekly" | "monthly";
+
