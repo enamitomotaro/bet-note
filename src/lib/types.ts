@@ -13,7 +13,7 @@ export interface DashboardStats {
   totalInvestment: number;
   totalPayout: number;
   netProfit: number;
-  overallRoi: number; // Net profit based ROI: (netProfit / totalInvestment) * 100
+  overallRoi: number; // Overall Payout Rate (回収率): (totalPayout / totalInvestment) * 100
   hitRate: number; // Percentage
   maxPayoutPerRace: number; // New: Highest payout in a single race
 }

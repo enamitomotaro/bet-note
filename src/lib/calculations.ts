@@ -19,7 +19,8 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
   });
 
   const netProfit = totalPayout - totalInvestment;
-  const overallRoi = totalInvestment > 0 ? (netProfit / totalInvestment) * 100 : 0;
+  // overallRoi を回収率 (totalPayout / totalInvestment) * 100 に変更
+  const overallRoi = totalInvestment > 0 ? (totalPayout / totalInvestment) * 100 : 0;
   const hitRate = entries.length > 0 ? (winningEntryCount / entries.length) * 100 : 0;
 
   return {
@@ -89,7 +90,7 @@ export function prepareRoiChartData(entries: BetEntry[]): ChartDataPoint[] {
 export function calculateAverageRoi(entries: BetEntry[]): number {
   if (entries.length === 0) return 0;
   const totalInvestment = entries.reduce((sum, entry) => sum + entry.betAmount, 0);
-  const totalProfitLoss = entries.reduce((sum, entry) => sum + entry.profitLoss, 0);
+  const totalPayout = entries.reduce((sum, entry) => sum + entry.payoutAmount, 0); // Use totalPayout for average回収率
   if (totalInvestment === 0) return 0;
-  return (totalProfitLoss / totalInvestment) * 100;
+  return (totalPayout / totalInvestment) * 100; // Calculate as (Total Payout / Total Investment)
 }
