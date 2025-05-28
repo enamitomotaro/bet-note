@@ -63,42 +63,44 @@ export default function DashboardPage() {
   return (
     <>
       <Card className="mb-8" data-ai-hint="calendar filter">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <ListFilter className="h-5 w-5 text-accent" />
             期間フィルター
           </CardTitle>
+          {(startDate || endDate) && (
+            <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
+              <FilterX className="mr-2 h-4 w-4" />
+              フィルター解除
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? format(startDate, "PPP") : <span>開始日</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
-              </PopoverContent>
-            </Popover>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {endDate ? format(endDate, "PPP") : <span>終了日</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
-              </PopoverContent>
-            </Popover>
-            {(startDate || endDate) && (
-              <Button variant="ghost" onClick={clearFilters} className="w-full md:w-auto text-accent hover:text-accent/90">
-                <FilterX className="mr-2 h-4 w-4" />
-                フィルター解除
-              </Button>
-            )}
+          <div className="flex justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP") : <span>開始日</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP") : <span>終了日</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </CardContent>
       </Card>
