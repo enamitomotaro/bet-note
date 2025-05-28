@@ -133,14 +133,16 @@ export function AiPredictor() {
                 )}
               />
             </div>
-            <Button type="submit" disabled={isLoading} className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Brain className="mr-2 h-4 w-4" />
-              )}
-              AIに予想を依頼
-            </Button>
+            <div className="flex justify-center pt-2">
+              <Button type="submit" disabled={isLoading} className="w-full md:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Brain className="mr-2 h-4 w-4" />
+                )}
+                AIに予想を依頼
+              </Button>
+            </div>
           </form>
         </Form>
 

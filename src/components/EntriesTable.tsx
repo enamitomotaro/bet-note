@@ -227,11 +227,12 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               </DialogHeader>
               <EntryForm 
                 isEditMode 
+                id="edit-entry-form"
                 initialData={editingEntry} 
                 onUpdateEntry={handleUpdateEntryInDialog}
                 onClose={handleCloseEditDialog}
               />
-              <DialogFooter className="mt-6 pt-4 border-t flex justify-between items-center"> 
+              <DialogFooter className="mt-6 pt-4 border-t flex justify-center items-center gap-x-4"> 
                 <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
@@ -268,4 +269,3 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
-

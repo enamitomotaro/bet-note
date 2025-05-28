@@ -35,6 +35,7 @@ const formSchema = z.object({
 type EntryFormValues = z.infer<typeof formSchema>;
 
 interface EntryFormProps {
+  id?: string; // For associating with external submit button
   onAddEntry?: (entry: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
   onUpdateEntry?: (id: string, entry: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
   initialData?: BetEntry;
@@ -43,6 +44,7 @@ interface EntryFormProps {
 }
 
 export function EntryForm({ 
+  id,
   onAddEntry, 
   onUpdateEntry, 
   initialData, 
@@ -58,8 +60,6 @@ export function EntryForm({
       payoutAmount: initialData?.payoutAmount || 0,
     },
   });
-
-  const formId = isEditMode ? "edit-entry-form" : undefined;
 
   useEffect(() => {
     if (initialData) {
@@ -101,7 +101,6 @@ export function EntryForm({
   }
 
   const cardTitleText = isEditMode ? "エントリーを編集" : "新しいエントリー記録";
-  // SubmitIcon and submitButtonText are now primarily for add mode button
   const SubmitIconForAddMode = PlusCircle;
   const submitButtonTextForAddMode = "記録を追加";
 
@@ -111,14 +110,14 @@ export function EntryForm({
       {!isEditMode && (
         <CardHeader>
           <CardTitle className="text-xl flex items-center gap-2">
-            <PlusCircle className="h-6 w-6 text-accent" /> {/* Icon fixed for add mode header */}
+            <PlusCircle className="h-6 w-6 text-accent" />
             {cardTitleText}
           </CardTitle>
         </CardHeader>
       )}
       <CardContent className={isEditMode ? 'p-0' : ''}>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id={formId}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id={id}>
             <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -202,7 +201,7 @@ export function EntryForm({
               />
             </div>
             {!isEditMode && ( 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-center gap-4 mt-8">
                 {onClose && ( 
                   <Button type="button" variant="outline" onClick={() => {
                     form.reset({
