@@ -5,6 +5,7 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
   let totalInvestment = 0;
   let totalPayout = 0;
   let winningEntryCount = 0;
+  let maxPayoutPerRace = 0;
 
   entries.forEach(entry => {
     totalInvestment += entry.betAmount;
@@ -12,21 +13,14 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
     if (entry.profitLoss > 0) {
       winningEntryCount++;
     }
+    if (entry.payoutAmount > maxPayoutPerRace) {
+      maxPayoutPerRace = entry.payoutAmount;
+    }
   });
 
   const netProfit = totalPayout - totalInvestment;
   const overallRoi = totalInvestment > 0 ? (netProfit / totalInvestment) * 100 : 0;
   const hitRate = entries.length > 0 ? (winningEntryCount / entries.length) * 100 : 0;
-
-  // Calculate winning streak
-  let winningStreak = 0;
-  for (let i = entries.length - 1; i >= 0; i--) {
-    if (entries[i].profitLoss > 0) {
-      winningStreak++;
-    } else {
-      break;
-    }
-  }
 
   return {
     totalInvestment,
@@ -34,7 +28,7 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
     netProfit,
     overallRoi,
     hitRate,
-    winningStreak,
+    maxPayoutPerRace,
   };
 }
 

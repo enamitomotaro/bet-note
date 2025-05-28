@@ -15,7 +15,7 @@ export interface DashboardStats {
   netProfit: number;
   overallRoi: number; // Net profit based ROI: (netProfit / totalInvestment) * 100
   hitRate: number; // Percentage
-  winningStreak: number;
+  maxPayoutPerRace: number; // New: Highest payout in a single race
 }
 
 export interface ChartDataPoint {
@@ -24,4 +24,3 @@ export interface ChartDataPoint {
 }
 
 export type ProfitChartTimespan = "daily" | "weekly" | "monthly";
-

@@ -1,8 +1,9 @@
+
 "use client";
 
 import type { DashboardStats } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingUp, Percent, Target, CheckCircle, CornerRightUp } from 'lucide-react';
+import { DollarSign, TrendingUp, Percent, Target, CheckCircle, CornerRightUp, Award } from 'lucide-react';
 import { formatCurrency, formatPercentage } from '@/lib/calculations';
 
 interface DashboardCardsProps {
@@ -32,7 +33,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
       <StatCard title="純利益" value={stats.netProfit} icon={stats.netProfit >= 0 ? CheckCircle : CornerRightUp} unit="currency" dataAiHint="profit graph" />
       <StatCard title="ROI" value={formatPercentage(stats.overallRoi)} icon={Percent} dataAiHint="return investment" />
       <StatCard title="的中率" value={formatPercentage(stats.hitRate)} icon={Target} dataAiHint="target accuracy" />
-      <StatCard title="連勝数" value={stats.winningStreak} icon={CornerRightUp} unit="回" dataAiHint="trophy win" />
+      <StatCard title="最高払戻額" value={stats.maxPayoutPerRace} icon={Award} unit="currency" dataAiHint="award prize" />
     </div>
   );
 }
