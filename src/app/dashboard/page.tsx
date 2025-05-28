@@ -3,7 +3,6 @@
 
 import { DashboardCards } from '@/components/DashboardCards';
 import { ProfitChart } from '@/components/ProfitChart';
-import { RecoveryRateChart } from '@/components/RoiChart'; // Updated import name
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { calculateStats } from '@/lib/calculations';
 import { Separator } from '@/components/ui/separator';
@@ -32,11 +31,10 @@ export default function DashboardPage() {
     <>
       <DashboardCards stats={dashboardStats} />
       <Separator className="my-8" />
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8"> {/* Changed to grid-cols-1 */}
         <ProfitChart entries={entries} />
-        <RecoveryRateChart entries={entries} /> {/* Updated component usage */}
+        {/* RecoveryRateChart has been removed */}
       </div>
     </>
   );
 }
-

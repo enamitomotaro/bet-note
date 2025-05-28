@@ -19,7 +19,6 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
   });
 
   const netProfit = totalPayout - totalInvestment;
-  // overallRoi は全体の回収率 (totalPayout / totalInvestment) * 100
   const overallRoi = totalInvestment > 0 ? (totalPayout / totalInvestment) * 100 : 0;
   const hitRate = entries.length > 0 ? (winningEntryCount / entries.length) * 100 : 0;
 
@@ -27,7 +26,7 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
     totalInvestment,
     totalPayout,
     netProfit,
-    overallRoi,
+    overallRoi, // This is overall Recovery Rate
     hitRate,
     maxPayoutPerRace,
   };
@@ -56,7 +55,6 @@ export function prepareProfitChartData(entries: BetEntry[], timespan: ProfitChar
         key = format(date, 'yyyy-MM-dd');
         break;
       case 'weekly':
-        // Group by year and week number to handle multi-year data
         key = `${getYear(date)}-W${String(getWeek(date, { weekStartsOn: 1 })).padStart(2, '0')}`;
         break;
       case 'monthly':
@@ -74,24 +72,15 @@ export function prepareProfitChartData(entries: BetEntry[], timespan: ProfitChar
   
   return Object.entries(aggregatedData)
     .map(([name, value]) => ({ name, value }))
-    .sort((a,b) => a.name.localeCompare(b.name)); // Ensure chronological order for chart
+    .sort((a,b) => a.name.localeCompare(b.name));
 }
 
-export function prepareRecoveryRateChartData(entries: BetEntry[]): ChartDataPoint[] {
-   if (!entries.length) return [];
-   // For Recovery Rate bar chart, show recovery rate per race or average recovery rate over time periods.
-   // Here, let's show recovery rate for each entry with a race name, or just by date.
-   return entries.map(entry => ({
-     name: entry.raceName || entry.date,
-     value: entry.roi, // roi here represents individual recovery rate
-   })).slice(-10); // Show last 10 for brevity, can be made configurable
-}
+// prepareRecoveryRateChartData function has been removed as the chart is no longer used.
 
 export function calculateAverageRecoveryRate(entries: BetEntry[]): number {
   if (entries.length === 0) return 0;
   const totalInvestment = entries.reduce((sum, entry) => sum + entry.betAmount, 0);
   const totalPayout = entries.reduce((sum, entry) => sum + entry.payoutAmount, 0);
   if (totalInvestment === 0) return 0;
-  return (totalPayout / totalInvestment) * 100; // Calculate as (Total Payout / Total Investment)
+  return (totalPayout / totalInvestment) * 100;
 }
-

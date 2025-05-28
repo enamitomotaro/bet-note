@@ -16,11 +16,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, PlusCircle } from "lucide-react";
-import { format } from "date-fns";
+import { CalendarIcon, PlusCircle, Edit3 } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { BetEntry } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   date: z.date({
@@ -34,38 +35,78 @@ const formSchema = z.object({
 type EntryFormValues = z.infer<typeof formSchema>;
 
 interface EntryFormProps {
-  onAddEntry: (entry: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
+  onAddEntry?: (entry: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
+  onUpdateEntry?: (id: string, entry: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
+  initialData?: BetEntry;
+  isEditMode?: boolean;
+  onClose?: () => void; // To close dialog after submission
 }
 
-export function EntryForm({ onAddEntry }: EntryFormProps) {
+export function EntryForm({ 
+  onAddEntry, 
+  onUpdateEntry, 
+  initialData, 
+  isEditMode = false,
+  onClose
+}: EntryFormProps) {
   const form = useForm<EntryFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      date: new Date(),
-      raceName: "",
-      betAmount: 100,
-      payoutAmount: 0,
+      date: initialData ? parseISO(initialData.date) : new Date(),
+      raceName: initialData?.raceName || "",
+      betAmount: initialData?.betAmount || 100,
+      payoutAmount: initialData?.payoutAmount || 0,
     },
   });
 
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        date: parseISO(initialData.date),
+        raceName: initialData.raceName || "",
+        betAmount: initialData.betAmount,
+        payoutAmount: initialData.payoutAmount,
+      });
+    } else {
+      form.reset({
+        date: new Date(),
+        raceName: "",
+        betAmount: 100,
+        payoutAmount: 0,
+      });
+    }
+  }, [initialData, form]);
+
   function onSubmit(values: EntryFormValues) {
-    onAddEntry({
+    const entryData = {
       ...values,
-      date: format(values.date, "yyyy-MM-dd"), // Store date as ISO string
-    });
-    form.reset(); // Reset form after submission
-    form.setValue("date", new Date()); // Reset date to today
+      date: format(values.date, "yyyy-MM-dd"),
+    };
+    if (isEditMode && initialData && onUpdateEntry) {
+      onUpdateEntry(initialData.id, entryData);
+    } else if (onAddEntry) {
+      onAddEntry(entryData);
+    }
+    form.reset();
+    form.setValue("date", new Date());
+    if (onClose) onClose();
   }
 
+  const cardTitleText = isEditMode ? "エントリーを編集" : "新しいエントリー記録";
+  const submitButtonText = isEditMode ? "更新する" : "記録を追加";
+  const SubmitIcon = isEditMode ? Edit3 : PlusCircle;
+
   return (
-    <Card className="mb-8" data-ai-hint="form document">
-      <CardHeader>
-        <CardTitle className="text-xl flex items-center gap-2">
-          <PlusCircle className="h-6 w-6 text-accent" />
-          新しいエントリー記録
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Card className={`mb-8 ${isEditMode ? 'border-0 shadow-none' : ''}`} data-ai-hint="form document">
+      {!isEditMode && (
+        <CardHeader>
+          <CardTitle className="text-xl flex items-center gap-2">
+            <SubmitIcon className="h-6 w-6 text-accent" />
+            {cardTitleText}
+          </CardTitle>
+        </CardHeader>
+      )}
+      <CardContent className={isEditMode ? 'p-0' : ''}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
@@ -150,10 +191,17 @@ export function EntryForm({ onAddEntry }: EntryFormProps) {
                 )}
               />
             </div>
-            <Button type="submit" className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              記録を追加
-            </Button>
+            <div className="flex justify-end gap-2">
+              {isEditMode && onClose && (
+                <Button type="button" variant="outline" onClick={onClose}>
+                  キャンセル
+                </Button>
+              )}
+              <Button type="submit" className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
+                <SubmitIcon className="mr-2 h-4 w-4" />
+                {submitButtonText}
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

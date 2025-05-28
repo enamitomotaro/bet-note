@@ -1,3 +1,4 @@
+
 "use client";
 
 import { EntryForm } from '@/components/EntryForm';
@@ -6,7 +7,7 @@ import { useBetEntries } from '@/hooks/useBetEntries';
 import { useEffect, useState } from 'react';
 
 export default function EntriesPage() {
-  const { entries, addEntry, deleteEntry, isLoaded } = useBetEntries();
+  const { entries, addEntry, updateEntry, deleteEntry, isLoaded } = useBetEntries();
   const [clientMounted, setClientMounted] = useState(false);
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function EntriesPage() {
   return (
     <div className="space-y-8">
       <EntryForm onAddEntry={addEntry} />
-      <EntriesTable entries={entries} onDeleteEntry={deleteEntry} />
+      <EntriesTable entries={entries} onDeleteEntry={deleteEntry} onUpdateEntry={updateEntry} />
     </div>
   );
 }

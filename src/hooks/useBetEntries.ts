@@ -4,16 +4,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { BetEntry } from '@/lib/types';
 import useLocalStorage from './useLocalStorage';
-import { v4 as uuidv4 } from 'uuid'; // For generating unique IDs
-
-// Install uuid: npm install uuid @types/uuid
-// For this exercise, assuming uuid is available or can be added.
-// If not, a simpler ID generator can be used. For now, let's assume it's added.
+import { v4 as uuidv4 } from 'uuid';
 
 const calculateEntryFields = (betAmount: number, payoutAmount: number): Pick<BetEntry, 'profitLoss' | 'roi'> => {
   const profitLoss = payoutAmount - betAmount;
-  // roi here represents individual recovery rate (回収率)
-  const roi = betAmount > 0 ? (payoutAmount / betAmount) * 100 : 0; 
+  const roi = betAmount > 0 ? (payoutAmount / betAmount) * 100 : 0; // Individual recovery rate
   return { profitLoss, roi };
 };
 
@@ -22,7 +17,6 @@ export function useBetEntries() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // This ensures that we only try to access localStorage after the component has mounted on the client.
     setIsLoaded(true);
   }, []);
 
@@ -37,13 +31,22 @@ export function useBetEntries() {
     setEntries(prevEntries => [...prevEntries, entryWithCalculations].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
   }, [setEntries]);
 
+  const updateEntry = useCallback((id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
+    const { profitLoss, roi } = calculateEntryFields(updatedData.betAmount, updatedData.payoutAmount);
+    setEntries(prevEntries =>
+      prevEntries.map(entry =>
+        entry.id === id
+          ? { ...entry, ...updatedData, profitLoss, roi }
+          : entry
+      ).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    );
+  }, [setEntries]);
+
   const deleteEntry = useCallback((id: string) => {
     setEntries(prevEntries => prevEntries.filter(entry => entry.id !== id));
   }, [setEntries]);
   
-  // Return entries only when loaded to avoid hydration issues with localStorage
   const loadedEntries = isLoaded ? entries : [];
 
-  return { entries: loadedEntries, addEntry, deleteEntry, isLoaded };
+  return { entries: loadedEntries, addEntry, updateEntry, deleteEntry, isLoaded };
 }
-

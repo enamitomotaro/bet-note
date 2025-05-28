@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, ListFilter, Trash2, FilterX } from 'lucide-react';
+import { CalendarIcon, ListFilter, Trash2, FilterX, Pencil } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, isValid } from 'date-fns';
@@ -20,23 +20,28 @@ import { cn } from '@/lib/utils';
 import { calculateAverageRecoveryRate, formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { EntryForm } from './EntryForm'; // Assuming EntryForm is in the same directory or adjust path
 
 interface EntriesTableProps {
   entries: BetEntry[];
   onDeleteEntry: (id: string) => void;
+  onUpdateEntry: (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
 }
 
-export function EntriesTable({ entries, onDeleteEntry }: EntriesTableProps) {
+export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesTableProps) {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [clientMounted, setClientMounted] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<BetEntry | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   useEffect(() => {
     setClientMounted(true);
   }, []);
   
   const filteredEntries = useMemo(() => {
-    if (!clientMounted) return []; // Return empty array or initial entries if not mounted
+    if (!clientMounted) return [];
     return entries.filter(entry => {
       const entryDate = parseISO(entry.date);
       if (!isValid(entryDate)) return false;
@@ -57,9 +62,19 @@ export function EntriesTable({ entries, onDeleteEntry }: EntriesTableProps) {
     setStartDate(undefined);
     setEndDate(undefined);
   };
+
+  const handleEdit = (entry: BetEntry) => {
+    setEditingEntry(entry);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateEntry = (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
+    onUpdateEntry(id, updatedData);
+    setIsEditDialogOpen(false);
+    setEditingEntry(null);
+  };
   
   if (!clientMounted) {
-     // Or a loading skeleton for the table
     return (
         <Card data-ai-hint="table spreadsheet">
             <CardHeader>
@@ -152,7 +167,10 @@ export function EntriesTable({ entries, onDeleteEntry }: EntriesTableProps) {
                       {formatCurrency(entry.profitLoss)}
                     </TableCell>
                     <TableCell className="text-right">{formatPercentage(entry.roi)}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center space-x-1">
+                       <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)} aria-label="編集">
+                        <Pencil className="h-4 w-4 text-blue-600" />
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => onDeleteEntry(entry.id)} aria-label="削除">
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -164,7 +182,28 @@ export function EntriesTable({ entries, onDeleteEntry }: EntriesTableProps) {
           </div>
         )}
       </CardContent>
+
+      {editingEntry && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Pencil className="h-5 w-5 text-accent"/>
+                エントリーを編集
+              </DialogTitle>
+            </DialogHeader>
+            <EntryForm 
+              isEditMode 
+              initialData={editingEntry} 
+              onUpdateEntry={handleUpdateEntry}
+              onClose={() => {
+                setIsEditDialogOpen(false);
+                setEditingEntry(null);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 }
-
