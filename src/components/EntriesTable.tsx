@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, ListFilter, Trash2, FilterX, Pencil } from 'lucide-react';
+import { CalendarIcon, ListFilter, Trash2, FilterX, Pencil, Percent } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, isValid } from 'date-fns';
@@ -20,8 +20,8 @@ import { cn } from '@/lib/utils';
 import { calculateAverageRecoveryRate, formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { EntryForm } from './EntryForm'; // Assuming EntryForm is in the same directory or adjust path
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EntryForm } from './EntryForm';
 
 interface EntriesTableProps {
   entries: BetEntry[];
@@ -51,7 +51,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
       if (start && entryDate < start) return false;
       if (end && entryDate > end) return false;
       return true;
-    });
+    }).sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()); // Sort by date descending
   }, [entries, startDate, endDate, clientMounted]);
 
   const averageRecoveryRateForFiltered = useMemo(() => {
@@ -185,7 +185,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
 
       {editingEntry && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
+          <DialogContent className="bg-card"> {/* Added bg-card here */}
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Pencil className="h-5 w-5 text-accent"/>
