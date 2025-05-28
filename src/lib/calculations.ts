@@ -11,7 +11,7 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
   entries.forEach(entry => {
     totalInvestment += entry.betAmount;
     totalPayout += entry.payoutAmount;
-    if (entry.profitLoss > 0) {
+    if (entry.payoutAmount > entry.betAmount) { // Winning condition: payout is greater than bet
       winningEntryCount++;
     }
     if (entry.payoutAmount > maxPayoutPerRace) {
@@ -20,6 +20,7 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
   });
 
   const netProfit = totalPayout - totalInvestment;
+  // overallRecoveryRate は (総払戻額 / 総投資額) * 100
   const overallRecoveryRate = totalInvestment > 0 ? (totalPayout / totalInvestment) * 100 : 0;
   const hitRate = entries.length > 0 ? (winningEntryCount / entries.length) * 100 : 0;
 
@@ -27,7 +28,7 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
     totalInvestment,
     totalPayout,
     netProfit,
-    overallRecoveryRate,
+    overallRecoveryRate, // This is overallRecoveryRate, not overallRoi
     hitRate,
     maxPayoutPerRace,
   };
@@ -37,7 +38,10 @@ export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(amount);
 }
 
-export function formatPercentage(value: number): string {
+export function formatPercentage(value: number | undefined | null): string {
+  if (typeof value !== 'number' || isNaN(value)) {
+    return '0.00%';
+  }
   return `${value.toFixed(2)}%`;
 }
 
@@ -84,7 +88,6 @@ export function prepareCumulativeProfitChartData(entries: BetEntry[], timespan: 
   let cumulativeProfit = 0;
   const dailyCumulativeProfitsWithEntries: Record<string, number> = {};
 
-  // Calculate cumulative profits only for days with entries
   for (const entry of sortedEntries) {
     cumulativeProfit += entry.profitLoss;
     const dateKey = format(parseISO(entry.date), 'yyyy-MM-dd');
@@ -92,10 +95,9 @@ export function prepareCumulativeProfitChartData(entries: BetEntry[], timespan: 
   }
 
   if (Object.keys(dailyCumulativeProfitsWithEntries).length === 0) {
-    return []; // No entries, no cumulative data
+    return []; 
   }
-
-  // Fill missing days with the previous day's cumulative profit
+  
   const firstDateStr = Object.keys(dailyCumulativeProfitsWithEntries).sort()[0];
   const lastDateStr = sortedEntries.length > 0 ? format(parseISO(sortedEntries[sortedEntries.length -1].date), 'yyyy-MM-dd') : firstDateStr;
   
@@ -103,32 +105,36 @@ export function prepareCumulativeProfitChartData(entries: BetEntry[], timespan: 
   const lastDate = parseISO(lastDateStr);
   let lastKnownProfit = 0;
   
-  // Find initial profit for the very first day if it's before the first entry (should be 0 or based on entries before firstDateStr if any)
-  // To ensure the graph starts from a sensible point, check if the first entry date is the firstDateStr
-  // If not, it means there might be entries before that date.
-  // However, with sortedEntries, firstDateStr should be the date of the first entry.
-  // Let's find the profit *before* the first entry to correctly establish the baseline.
-  // This is tricky, a simpler approach is to ensure the first point reflects the first entry's impact.
-  // The loop below starts from firstDateStr.
+  // Calculate profit before the very first date in dailyCumulativeProfitsWithEntries
+  // This ensures the graph starts from a sensible baseline if there were entries before this period.
+  let initialBaselineProfit = 0;
+    for (const entry of sortedEntries) {
+        if (parseISO(entry.date) < parseISO(firstDateStr)) {
+            initialBaselineProfit += entry.profitLoss;
+        } else {
+            break; 
+        }
+    }
+  lastKnownProfit = initialBaselineProfit;
+
   
   const allDailyProfits: Record<string, number> = {};
-  let tempCumulativeProfitBeforeFirstDate = 0;
-  for (const entry of sortedEntries) {
-      if (parseISO(entry.date) < parseISO(firstDateStr)) {
-          tempCumulativeProfitBeforeFirstDate += entry.profitLoss;
-      } else {
-          break;
-      }
-  }
-  lastKnownProfit = tempCumulativeProfitBeforeFirstDate;
-
-
   while (currentDate <= lastDate) {
     const dateKey = format(currentDate, 'yyyy-MM-dd');
     if (dailyCumulativeProfitsWithEntries[dateKey] !== undefined) {
       lastKnownProfit = dailyCumulativeProfitsWithEntries[dateKey];
+    } else if (currentDate >= parseISO(firstDateStr)) { // Only fill forward if we are past or at the first entry date
+        // For days without entries, carry forward the last known profit
+        allDailyProfits[dateKey] = lastKnownProfit;
+    } else {
+        // For days before any recorded entry with profit, use the initial baseline
+        allDailyProfits[dateKey] = initialBaselineProfit;
     }
-    allDailyProfits[dateKey] = lastKnownProfit;
+     if (dailyCumulativeProfitsWithEntries[dateKey] !== undefined) {
+      allDailyProfits[dateKey] = dailyCumulativeProfitsWithEntries[dateKey]; // Prioritize actual entry day's cumulative
+    } else {
+      allDailyProfits[dateKey] = lastKnownProfit; // Fill with last known if no entry on this day
+    }
     currentDate = addDays(currentDate, 1);
   }
   
@@ -143,6 +149,8 @@ export function prepareCumulativeProfitChartData(entries: BetEntry[], timespan: 
               break;
           case 'weekly':
               key = `${getYear(date)}-W${String(getWeek(date, { weekStartsOn: 1 })).padStart(2, '0')}`;
+              // For weekly/monthly, we want the cumulative profit at the END of that period.
+              // So, this assignment effectively takes the latest known profit for that period.
               aggregatedData[key] = profit; 
               break;
           case 'monthly':
@@ -163,5 +171,6 @@ export function calculateAverageRecoveryRate(entries: BetEntry[]): number {
   const totalInvestment = entries.reduce((sum, entry) => sum + entry.betAmount, 0);
   const totalPayout = entries.reduce((sum, entry) => sum + entry.payoutAmount, 0);
   if (totalInvestment === 0) return 0;
+  // 回収率 = (総払戻額 / 総投資額) * 100
   return (totalPayout / totalInvestment) * 100;
 }
