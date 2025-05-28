@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, ListFilter, FilterX, Pencil, Trash2, Percent } from 'lucide-react';
+import { CalendarIcon, ListFilter, FilterX, Pencil, Trash2, Percent, Edit3 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, isValid } from 'date-fns';
@@ -30,7 +30,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict with DialogTitle
+  AlertDialogTitle as UiAlertDialogTitle, 
 } from "@/components/ui/alert-dialog";
 
 interface EntriesTableProps {
@@ -215,7 +215,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
 
         {editingEntry && (
           <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => {
-            if (!isOpen) handleCloseEditDialog(); // Ensure dialog closes correctly
+            if (!isOpen) handleCloseEditDialog(); 
             else setIsEditDialogOpen(true);
           }}>
             <DialogContent className="bg-card sm:max-w-md">
@@ -231,10 +231,14 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 onUpdateEntry={handleUpdateEntryInDialog}
                 onClose={handleCloseEditDialog}
               />
-              <DialogFooter className="mt-6 pt-4 border-t sm:justify-start"> 
+              <DialogFooter className="mt-6 pt-4 border-t flex justify-between items-center"> 
                 <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
+                </Button>
+                <Button type="submit" form="edit-entry-form" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Edit3 className="mr-2 h-4 w-4" />
+                  更新
                 </Button>
               </DialogFooter>
             </DialogContent>

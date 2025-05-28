@@ -59,6 +59,8 @@ export function EntryForm({
     },
   });
 
+  const formId = isEditMode ? "edit-entry-form" : undefined;
+
   useEffect(() => {
     if (initialData) {
       form.reset({
@@ -82,37 +84,41 @@ export function EntryForm({
       ...values,
       date: format(values.date, "yyyy-MM-dd"),
     };
-    if (isEditMode && initialData && onUpdateEntry) {
+    if (isEditMode && initialData?.id && onUpdateEntry) {
       onUpdateEntry(initialData.id, entryData);
     } else if (onAddEntry) {
       onAddEntry(entryData);
-      form.reset({ 
-        date: new Date(),
-        raceName: "",
-        betAmount: 100,
-        payoutAmount: 0,
-      });
+      if (!isEditMode) {
+        form.reset({ 
+          date: new Date(),
+          raceName: "",
+          betAmount: 100,
+          payoutAmount: 0,
+        });
+      }
     }
     if (onClose && isEditMode) onClose(); 
   }
 
   const cardTitleText = isEditMode ? "エントリーを編集" : "新しいエントリー記録";
-  const submitButtonText = isEditMode ? "更新" : "記録を追加";
-  const SubmitIcon = isEditMode ? Edit3 : PlusCircle;
+  // SubmitIcon and submitButtonText are now primarily for add mode button
+  const SubmitIconForAddMode = PlusCircle;
+  const submitButtonTextForAddMode = "記録を追加";
+
 
   return (
     <Card className={`mb-8 ${isEditMode ? 'border-0 shadow-none p-0' : ''}`} data-ai-hint="form document">
       {!isEditMode && (
         <CardHeader>
           <CardTitle className="text-xl flex items-center gap-2">
-            <SubmitIcon className="h-6 w-6 text-accent" />
+            <PlusCircle className="h-6 w-6 text-accent" /> {/* Icon fixed for add mode header */}
             {cardTitleText}
           </CardTitle>
         </CardHeader>
       )}
       <CardContent className={isEditMode ? 'p-0' : ''}>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id={formId}>
             <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -195,25 +201,27 @@ export function EntryForm({
                 )}
               />
             </div>
-            <div className="flex justify-end gap-2">
-              {!isEditMode && onClose && (
-                <Button type="button" variant="outline" onClick={() => {
-                  form.reset({
-                    date: new Date(),
-                    raceName: "",
-                    betAmount: 100,
-                    payoutAmount: 0,
-                  });
-                  if(onClose) onClose();
-                }}>
-                  リセット
+            {!isEditMode && ( 
+              <div className="flex justify-end gap-2">
+                {onClose && ( 
+                  <Button type="button" variant="outline" onClick={() => {
+                    form.reset({
+                      date: new Date(),
+                      raceName: "",
+                      betAmount: 100,
+                      payoutAmount: 0,
+                    });
+                    if(onClose) onClose();
+                  }}>
+                    リセット
+                  </Button>
+                )}
+                <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <SubmitIconForAddMode className="mr-2 h-4 w-4" />
+                  {submitButtonTextForAddMode}
                 </Button>
-              )}
-              <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <SubmitIcon className="mr-2 h-4 w-4" />
-                {submitButtonText}
-              </Button>
-            </div>
+              </div>
+            )}
           </form>
         </Form>
       </CardContent>
