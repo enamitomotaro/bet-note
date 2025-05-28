@@ -39,7 +39,7 @@ interface EntryFormProps {
   onUpdateEntry?: (id: string, entry: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
   initialData?: BetEntry;
   isEditMode?: boolean;
-  onClose?: () => void; // To close dialog after submission
+  onClose?: () => void;
 }
 
 export function EntryForm({ 
@@ -47,7 +47,7 @@ export function EntryForm({
   onUpdateEntry, 
   initialData, 
   isEditMode = false,
-  onClose
+  onClose // This prop might be called by the parent (Dialog) to close, or by the form's own logic.
 }: EntryFormProps) {
   const form = useForm<EntryFormValues>({
     resolver: zodResolver(formSchema),
@@ -67,7 +67,7 @@ export function EntryForm({
         betAmount: initialData.betAmount,
         payoutAmount: initialData.payoutAmount,
       });
-    } else {
+    } else if (!isEditMode) { // Reset only if not in edit mode and no initial data (i.e. for add mode)
       form.reset({
         date: new Date(),
         raceName: "",
@@ -75,7 +75,7 @@ export function EntryForm({
         payoutAmount: 0,
       });
     }
-  }, [initialData, form]);
+  }, [initialData, form, isEditMode]);
 
   function onSubmit(values: EntryFormValues) {
     const entryData = {
@@ -86,10 +86,16 @@ export function EntryForm({
       onUpdateEntry(initialData.id, entryData);
     } else if (onAddEntry) {
       onAddEntry(entryData);
+      form.reset({ // Reset to defaults for "add new" form after successful submission
+        date: new Date(),
+        raceName: "",
+        betAmount: 100,
+        payoutAmount: 0,
+      });
     }
-    form.reset();
-    form.setValue("date", new Date());
-    if (onClose) onClose();
+    // onClose is typically called by the parent dialog after successful submission,
+    // or by a dedicated cancel button within the form if it's not in a dialog.
+    if (onClose && isEditMode) onClose(); // Close dialog after update
   }
 
   const cardTitleText = isEditMode ? "エントリーを編集" : "新しいエントリー記録";
@@ -97,7 +103,7 @@ export function EntryForm({
   const SubmitIcon = isEditMode ? Edit3 : PlusCircle;
 
   return (
-    <Card className={`mb-8 ${isEditMode ? 'border-0 shadow-none' : ''}`} data-ai-hint="form document">
+    <Card className={`mb-8 ${isEditMode ? 'border-0 shadow-none p-0' : ''}`} data-ai-hint="form document">
       {!isEditMode && (
         <CardHeader>
           <CardTitle className="text-xl flex items-center gap-2">
@@ -192,12 +198,22 @@ export function EntryForm({
               />
             </div>
             <div className="flex justify-end gap-2">
-              {isEditMode && onClose && (
-                <Button type="button" variant="outline" onClick={onClose}>
-                  キャンセル
+              {/* Cancel button is only shown in non-edit mode (add mode)
+                  In edit mode, cancel is handled by the DialogFooter in EntriesTable */}
+              {!isEditMode && onClose && (
+                <Button type="button" variant="outline" onClick={() => {
+                  form.reset({
+                    date: new Date(),
+                    raceName: "",
+                    betAmount: 100,
+                    payoutAmount: 0,
+                  });
+                  if(onClose) onClose(); // If an onClose is provided for add mode (e.g. if it were in a dialog)
+                }}>
+                  リセット
                 </Button>
               )}
-              <Button type="submit" className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <SubmitIcon className="mr-2 h-4 w-4" />
                 {submitButtonText}
               </Button>

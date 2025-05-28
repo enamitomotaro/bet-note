@@ -12,16 +12,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, ListFilter, Trash2, FilterX, Pencil, Percent } from 'lucide-react';
+import { CalendarIcon, ListFilter, FilterX, Pencil, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { calculateAverageRecoveryRate, formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle as UiAlertTitle } from './ui/alert'; // Renamed to avoid conflict
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface EntriesTableProps {
   entries: BetEntry[];
@@ -35,6 +46,8 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
   const [clientMounted, setClientMounted] = useState(false);
   const [editingEntry, setEditingEntry] = useState<BetEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [entryToDeleteId, setEntryToDeleteId] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     setClientMounted(true);
@@ -51,7 +64,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
       if (start && entryDate < start) return false;
       if (end && entryDate > end) return false;
       return true;
-    }).sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()); // Sort by date descending
+    }).sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
   }, [entries, startDate, endDate, clientMounted]);
 
   const averageRecoveryRateForFiltered = useMemo(() => {
@@ -68,10 +81,31 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateEntry = (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
-    onUpdateEntry(id, updatedData);
+  const handleCloseEditDialog = () => {
     setIsEditDialogOpen(false);
     setEditingEntry(null);
+  }
+
+  const handleUpdateEntryInDialog = (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
+    onUpdateEntry(id, updatedData);
+    handleCloseEditDialog();
+  };
+
+  const requestDeleteEntry = (id: string) => {
+    setEntryToDeleteId(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteEntry = () => {
+    if (entryToDeleteId) {
+      onDeleteEntry(entryToDeleteId);
+    }
+    setIsDeleteDialogOpen(false);
+    setEntryToDeleteId(null);
+    // If the deleted entry was being edited, close the edit dialog
+    if (editingEntry && editingEntry.id === entryToDeleteId) {
+        handleCloseEditDialog();
+    }
   };
   
   if (!clientMounted) {
@@ -91,119 +125,144 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
   }
 
   return (
-    <Card data-ai-hint="table spreadsheet">
-      <CardHeader>
-        <CardTitle className="text-xl flex items-center gap-2">
-          <ListFilter className="h-6 w-6 text-accent" />
-          エントリー履歴
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col md:flex-row gap-4 mb-4 items-center">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {startDate ? format(startDate, "PPP") : <span>開始日</span>}
+    <>
+      <Card data-ai-hint="table spreadsheet">
+        <CardHeader>
+          <CardTitle className="text-xl flex items-center gap-2">
+            <ListFilter className="h-6 w-6 text-accent" />
+            エントリー履歴
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4 mb-4 items-center">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "PPP") : <span>開始日</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDate ? format(endDate, "PPP") : <span>終了日</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+              </PopoverContent>
+            </Popover>
+            {(startDate || endDate) && (
+              <Button variant="ghost" onClick={clearFilters} className="w-full md:w-auto text-accent hover:text-accent/90">
+                <FilterX className="mr-2 h-4 w-4" />
+                フィルター解除
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
-            </PopoverContent>
-          </Popover>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {endDate ? format(endDate, "PPP") : <span>終了日</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
-            </PopoverContent>
-          </Popover>
-          {(startDate || endDate) && (
-            <Button variant="ghost" onClick={clearFilters} className="w-full md:w-auto text-accent hover:text-accent/90">
-              <FilterX className="mr-2 h-4 w-4" />
-              フィルター解除
-            </Button>
-          )}
-        </div>
-
-        { (startDate || endDate) && filteredEntries.length > 0 && (
-          <Alert variant="default" className="mb-4 bg-accent/10 border-accent/50">
-            <Percent className="h-4 w-4 !text-accent" />
-            <AlertTitle className="text-accent">フィルター結果</AlertTitle>
-            <AlertDescription>
-              選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {filteredEntries.length === 0 ? (
-          <p className="text-muted-foreground py-4 text-center">表示するエントリーがありません。</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>日付</TableHead>
-                  <TableHead>レース名</TableHead>
-                  <TableHead className="text-right">掛け金</TableHead>
-                  <TableHead className="text-right">払戻金</TableHead>
-                  <TableHead className="text-right">損益</TableHead>
-                  <TableHead className="text-right">回収率</TableHead>
-                  <TableHead className="text-center">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredEntries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell>{format(parseISO(entry.date), "yyyy/MM/dd")}</TableCell>
-                    <TableCell>{entry.raceName || "-"}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(entry.betAmount)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(entry.payoutAmount)}</TableCell>
-                    <TableCell className={`text-right font-medium ${entry.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(entry.profitLoss)}
-                    </TableCell>
-                    <TableCell className="text-right">{formatPercentage(entry.roi)}</TableCell>
-                    <TableCell className="text-center space-x-1">
-                       <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)} aria-label="編集">
-                        <Pencil className="h-4 w-4 text-blue-600" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => onDeleteEntry(entry.id)} aria-label="削除">
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            )}
           </div>
-        )}
-      </CardContent>
 
-      {editingEntry && (
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="bg-card"> {/* Added bg-card here */}
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Pencil className="h-5 w-5 text-accent"/>
-                エントリーを編集
-              </DialogTitle>
-            </DialogHeader>
-            <EntryForm 
-              isEditMode 
-              initialData={editingEntry} 
-              onUpdateEntry={handleUpdateEntry}
-              onClose={() => {
-                setIsEditDialogOpen(false);
-                setEditingEntry(null);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-    </Card>
+          { (startDate || endDate) && filteredEntries.length > 0 && (
+            <Alert variant="default" className="mb-4 bg-accent/10 border-accent/50">
+              <Percent className="h-4 w-4 !text-accent" />
+              <UiAlertTitle className="text-accent">フィルター結果</UiAlertTitle>
+              <AlertDescription>
+                選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {filteredEntries.length === 0 ? (
+            <p className="text-muted-foreground py-4 text-center">表示するエントリーがありません。</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>日付</TableHead>
+                    <TableHead>レース名</TableHead>
+                    <TableHead className="text-right">掛け金</TableHead>
+                    <TableHead className="text-right">払戻金</TableHead>
+                    <TableHead className="text-right">損益</TableHead>
+                    <TableHead className="text-right">回収率</TableHead>
+                    <TableHead className="text-center">操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredEntries.map((entry) => (
+                    <TableRow key={entry.id}>
+                      <TableCell>{format(parseISO(entry.date), "yyyy/MM/dd")}</TableCell>
+                      <TableCell>{entry.raceName || "-"}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(entry.betAmount)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(entry.payoutAmount)}</TableCell>
+                      <TableCell className={`text-right font-medium ${entry.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(entry.profitLoss)}
+                      </TableCell>
+                      <TableCell className="text-right">{formatPercentage(entry.roi)}</TableCell>
+                      <TableCell className="text-center">
+                         <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)} aria-label="編集">
+                          <Pencil className="h-4 w-4 text-blue-600" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+
+        {editingEntry && (
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="bg-card sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Pencil className="h-5 w-5 text-accent"/>
+                  エントリーを編集
+                </DialogTitle>
+              </DialogHeader>
+              <EntryForm 
+                isEditMode 
+                initialData={editingEntry} 
+                onUpdateEntry={handleUpdateEntryInDialog} // Renamed from onUpdateEntry
+                onClose={handleCloseEditDialog} // This will be used by EntryForm's own submit/reset logic if needed
+              />
+              <DialogFooter className="mt-6 pt-4 border-t sm:justify-between">
+                <Button variant="outline" onClick={handleCloseEditDialog} className="sm:mr-auto">
+                  キャンセル
+                </Button>
+                <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  削除
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </Card>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>本当に削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              この操作は元に戻せません。エントリーが完全に削除されます。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteEntry}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
