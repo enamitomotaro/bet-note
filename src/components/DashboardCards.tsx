@@ -31,9 +31,10 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
       <StatCard title="総投資額" value={stats.totalInvestment} icon={DollarSign} unit="currency" dataAiHint="money investment" />
       <StatCard title="総払戻額" value={stats.totalPayout} icon={TrendingUp} unit="currency" dataAiHint="money payout" />
       <StatCard title="純利益" value={stats.netProfit} icon={stats.netProfit >= 0 ? CheckCircle : CornerRightUp} unit="currency" dataAiHint="profit graph" />
-      <StatCard title="ROI" value={formatPercentage(stats.overallRoi)} icon={Percent} dataAiHint="return investment" />
+      <StatCard title="回収率" value={formatPercentage(stats.overallRoi)} icon={Percent} dataAiHint="recovery rate" />
       <StatCard title="的中率" value={formatPercentage(stats.hitRate)} icon={Target} dataAiHint="target accuracy" />
       <StatCard title="最高払戻額" value={stats.maxPayoutPerRace} icon={Award} unit="currency" dataAiHint="award prize" />
     </div>
   );
 }
+

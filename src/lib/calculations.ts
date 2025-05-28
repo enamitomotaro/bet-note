@@ -19,7 +19,7 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
   });
 
   const netProfit = totalPayout - totalInvestment;
-  // overallRoi を回収率 (totalPayout / totalInvestment) * 100 に変更
+  // overallRoi は全体の回収率 (totalPayout / totalInvestment) * 100
   const overallRoi = totalInvestment > 0 ? (totalPayout / totalInvestment) * 100 : 0;
   const hitRate = entries.length > 0 ? (winningEntryCount / entries.length) * 100 : 0;
 
@@ -77,20 +77,21 @@ export function prepareProfitChartData(entries: BetEntry[], timespan: ProfitChar
     .sort((a,b) => a.name.localeCompare(b.name)); // Ensure chronological order for chart
 }
 
-export function prepareRoiChartData(entries: BetEntry[]): ChartDataPoint[] {
+export function prepareRecoveryRateChartData(entries: BetEntry[]): ChartDataPoint[] {
    if (!entries.length) return [];
-   // For ROI bar chart, perhaps show ROI per race or average ROI over time periods.
-   // Here, let's show ROI for each entry with a race name, or just by date.
+   // For Recovery Rate bar chart, show recovery rate per race or average recovery rate over time periods.
+   // Here, let's show recovery rate for each entry with a race name, or just by date.
    return entries.map(entry => ({
      name: entry.raceName || entry.date,
-     value: entry.roi,
+     value: entry.roi, // roi here represents individual recovery rate
    })).slice(-10); // Show last 10 for brevity, can be made configurable
 }
 
-export function calculateAverageRoi(entries: BetEntry[]): number {
+export function calculateAverageRecoveryRate(entries: BetEntry[]): number {
   if (entries.length === 0) return 0;
   const totalInvestment = entries.reduce((sum, entry) => sum + entry.betAmount, 0);
-  const totalPayout = entries.reduce((sum, entry) => sum + entry.payoutAmount, 0); // Use totalPayout for average回収率
+  const totalPayout = entries.reduce((sum, entry) => sum + entry.payoutAmount, 0);
   if (totalInvestment === 0) return 0;
   return (totalPayout / totalInvestment) * 100; // Calculate as (Total Payout / Total Investment)
 }
+

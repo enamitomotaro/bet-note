@@ -1,8 +1,9 @@
+
 "use client";
 
 import { DashboardCards } from '@/components/DashboardCards';
 import { ProfitChart } from '@/components/ProfitChart';
-import { RoiChart } from '@/components/RoiChart';
+import { RecoveryRateChart } from '@/components/RoiChart'; // Updated import name
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { calculateStats } from '@/lib/calculations';
 import { Separator } from '@/components/ui/separator';
@@ -33,8 +34,9 @@ export default function DashboardPage() {
       <Separator className="my-8" />
       <div className="grid lg:grid-cols-2 gap-8">
         <ProfitChart entries={entries} />
-        <RoiChart entries={entries} />
+        <RecoveryRateChart entries={entries} /> {/* Updated component usage */}
       </div>
     </>
   );
 }
+

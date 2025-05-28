@@ -5,11 +5,11 @@ import { useMemo, useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { BetEntry } from '@/lib/types';
-import { formatPercentage } from '@/lib/calculations';
+import { formatPercentage, prepareRecoveryRateChartData } from '@/lib/calculations';
 import { Percent } from 'lucide-react';
 import { format } from 'date-fns';
 
-interface RoiChartProps {
+interface RecoveryRateChartProps {
   entries: BetEntry[];
 }
 
@@ -18,14 +18,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="bg-background/80 backdrop-blur-sm p-3 rounded-md border border-border shadow-lg">
         <p className="label text-sm text-foreground">{`${label}`}</p>
-        <p className="intro text-sm text-primary">{`ROI : ${formatPercentage(payload[0].value)}`}</p>
+        <p className="intro text-sm text-primary">{`回収率 : ${formatPercentage(payload[0].value)}`}</p>
       </div>
     );
   }
   return null;
 };
 
-export function RoiChart({ entries }: RoiChartProps) {
+export function RecoveryRateChart({ entries }: RecoveryRateChartProps) {
   const [clientMounted, setClientMounted] = useState(false);
 
   useEffect(() => {
@@ -34,21 +34,18 @@ export function RoiChart({ entries }: RoiChartProps) {
   
   const chartData = useMemo(() => {
     if (!clientMounted) return [];
-    // Display ROI for the last 10 entries with race names, or just last 10 entries
+    // Display Recovery Rate for the last 10 entries with race names, or just last 10 entries
     const relevantEntries = entries.filter(e => e.betAmount > 0).slice(-10);
-    return relevantEntries.map(entry => ({
-     name: entry.raceName || format(new Date(entry.date), "MM/dd"),
-     value: entry.roi,
-   }));
+    return prepareRecoveryRateChartData(relevantEntries);
   }, [entries, clientMounted]);
 
   if (!clientMounted) {
     return (
-        <Card className="flex flex-col h-full" data-ai-hint="bar chart finance">
+        <Card className="flex flex-col h-full" data-ai-hint="bar chart recovery rate">
         <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
             <Percent className="h-6 w-6 text-accent" />
-            ROIグラフ (直近最大10件)
+            回収率グラフ (直近最大10件)
             </CardTitle>
         </CardHeader>
         <CardContent className="flex-grow pt-6">
@@ -59,11 +56,11 @@ export function RoiChart({ entries }: RoiChartProps) {
   }
 
   return (
-    <Card className="flex flex-col h-full" data-ai-hint="bar chart finance">
+    <Card className="flex flex-col h-full" data-ai-hint="bar chart recovery rate">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           <Percent className="h-6 w-6 text-accent" />
-          ROIグラフ (直近最大10件)
+          回収率グラフ (直近最大10件)
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow pt-6">
@@ -86,7 +83,7 @@ export function RoiChart({ entries }: RoiChartProps) {
                 tickFormatter={(value) => `${formatPercentage(value)}`}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--primary) / 0.1)' }} />
-              <Bar dataKey="value" fill="hsl(var(--primary))" name="ROI" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="value" fill="hsl(var(--primary))" name="回収率" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
@@ -98,3 +95,4 @@ export function RoiChart({ entries }: RoiChartProps) {
     </Card>
   );
 }
+

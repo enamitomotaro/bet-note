@@ -20,7 +20,8 @@ export interface DashboardStats {
 
 export interface ChartDataPoint {
   name: string; // Date, week, or month label
-  value: number; // Profit/loss or ROI/Payout Rate
+  value: number; // Profit/loss or Recovery Rate
 }
 
 export type ProfitChartTimespan = "daily" | "weekly" | "monthly";
+

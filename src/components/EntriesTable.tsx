@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -16,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { calculateAverageRoi, formatCurrency, formatPercentage } from '@/lib/calculations';
+import { calculateAverageRecoveryRate, formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
@@ -48,8 +49,8 @@ export function EntriesTable({ entries, onDeleteEntry }: EntriesTableProps) {
     });
   }, [entries, startDate, endDate, clientMounted]);
 
-  const averageRoiForFiltered = useMemo(() => {
-    return calculateAverageRoi(filteredEntries);
+  const averageRecoveryRateForFiltered = useMemo(() => {
+    return calculateAverageRecoveryRate(filteredEntries);
   }, [filteredEntries]);
 
   const clearFilters = () => {
@@ -119,7 +120,7 @@ export function EntriesTable({ entries, onDeleteEntry }: EntriesTableProps) {
             <Percent className="h-4 w-4 !text-accent" />
             <AlertTitle className="text-accent">フィルター結果</AlertTitle>
             <AlertDescription>
-              選択期間の平均ROI: <span className="font-semibold">{formatPercentage(averageRoiForFiltered)}</span>
+              選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
             </AlertDescription>
           </Alert>
         )}
@@ -136,7 +137,7 @@ export function EntriesTable({ entries, onDeleteEntry }: EntriesTableProps) {
                   <TableHead className="text-right">掛け金</TableHead>
                   <TableHead className="text-right">払戻金</TableHead>
                   <TableHead className="text-right">損益</TableHead>
-                  <TableHead className="text-right">ROI</TableHead>
+                  <TableHead className="text-right">回収率</TableHead>
                   <TableHead className="text-center">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -166,3 +167,4 @@ export function EntriesTable({ entries, onDeleteEntry }: EntriesTableProps) {
     </Card>
   );
 }
+

@@ -12,7 +12,8 @@ import { v4 as uuidv4 } from 'uuid'; // For generating unique IDs
 
 const calculateEntryFields = (betAmount: number, payoutAmount: number): Pick<BetEntry, 'profitLoss' | 'roi'> => {
   const profitLoss = payoutAmount - betAmount;
-  const roi = betAmount > 0 ? (payoutAmount / betAmount) * 100 : 0; // Changed to Payout Rate
+  // roi here represents individual recovery rate (回収率)
+  const roi = betAmount > 0 ? (payoutAmount / betAmount) * 100 : 0; 
   return { profitLoss, roi };
 };
 
@@ -31,7 +32,7 @@ export function useBetEntries() {
       ...newEntryData,
       id: uuidv4(),
       profitLoss,
-      roi,
+      roi, // roi is individual recovery rate (回収率)
     };
     setEntries(prevEntries => [...prevEntries, entryWithCalculations].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
   }, [setEntries]);
