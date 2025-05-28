@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -94,7 +95,7 @@ export function AiPredictor() {
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>日付</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>

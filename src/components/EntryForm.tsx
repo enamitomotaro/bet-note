@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -72,7 +73,7 @@ export function EntryForm({ onAddEntry }: EntryFormProps) {
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>日付</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
