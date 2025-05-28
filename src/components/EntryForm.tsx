@@ -129,7 +129,7 @@ export function EntryForm({ onAddEntry }: EntryFormProps) {
                   <FormItem>
                     <FormLabel>掛け金 (円)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="1000" {...field} />
+                      <Input type="number" placeholder="1000" step="100" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -142,7 +142,7 @@ export function EntryForm({ onAddEntry }: EntryFormProps) {
                   <FormItem>
                     <FormLabel>払戻金 (円)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="1500" {...field} />
+                      <Input type="number" placeholder="1500" step="10" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
