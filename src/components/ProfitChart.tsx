@@ -41,14 +41,14 @@ export function ProfitChart({ entries }: ProfitChartProps) {
 
   if (!clientMounted) {
     return (
-        <Card className="flex flex-col h-full" data-ai-hint="graph finance">
+        <Card className="flex flex-col" data-ai-hint="graph finance">
         <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-accent" />
             損益グラフ
             </CardTitle>
         </CardHeader>
-        <CardContent className="flex-grow pt-6">
+        <CardContent className="pt-6 h-[400px]">
             <p>読み込み中...</p>
         </CardContent>
         </Card>
@@ -56,7 +56,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
   }
 
   return (
-    <Card className="flex flex-col h-full" data-ai-hint="graph finance">
+    <Card className="flex flex-col" data-ai-hint="graph finance">
       <CardHeader>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <CardTitle className="text-xl flex items-center gap-2 mb-4 md:mb-0">
@@ -72,7 +72,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
           </Tabs>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow pt-6">
+      <CardContent className="pt-6 h-[400px]">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
