@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { calculateAverageRecoveryRate, formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription, AlertTitle as UiAlertTitle } from './ui/alert';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
   AlertDialog,
@@ -30,7 +30,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle, 
+  AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
 interface EntriesTableProps {
@@ -51,7 +51,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
   useEffect(() => {
     setClientMounted(true);
   }, []);
-  
+
   const filteredEntries = useMemo(() => {
     if (!clientMounted) return [];
     return entries.filter(entry => {
@@ -59,7 +59,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
       if (!isValid(entryDate)) return false;
       const start = startDate ? new Date(startDate.setHours(0,0,0,0)) : null;
       const end = endDate ? new Date(endDate.setHours(23,59,59,999)) : null;
-      
+
       if (start && entryDate < start) return false;
       if (end && entryDate > end) return false;
       return true;
@@ -105,7 +105,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
         handleCloseEditDialog();
     }
   };
-  
+
   if (!clientMounted) {
     return (
         <Card data-ai-hint="table spreadsheet">
@@ -125,42 +125,44 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
   return (
     <>
       <Card data-ai-hint="table spreadsheet">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl flex items-center gap-2">
             <ListFilter className="h-6 w-6 text-accent" />
             エントリー履歴
           </CardTitle>
+          {(startDate || endDate) && (
+            <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
+              <FilterX className="mr-2 h-4 w-4" />
+              フィルター解除
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-4 items-center">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? format(startDate, "PPP") : <span>開始日</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
-              </PopoverContent>
-            </Popover>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {endDate ? format(endDate, "PPP") : <span>終了日</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
-              </PopoverContent>
-            </Popover>
-            {(startDate || endDate) && (
-              <Button variant="ghost" onClick={clearFilters} className="w-full md:w-auto text-accent hover:text-accent/90">
-                <FilterX className="mr-2 h-4 w-4" />
-                フィルター解除
-              </Button>
-            )}
+          <div className="flex justify-center mb-4">
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP") : <span>開始日</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                </PopoverContent>
+              </Popover>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP") : <span>終了日</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           { (startDate || endDate) && filteredEntries.length > 0 && (
@@ -215,24 +217,24 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
 
         {editingEntry && (
           <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => {
-            if (!isOpen) handleCloseEditDialog(); 
+            if (!isOpen) handleCloseEditDialog();
             else setIsEditDialogOpen(true);
           }}>
             <DialogContent className="bg-card sm:max-w-md">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+                <UiDialogTitle className="flex items-center gap-2">
                   <Pencil className="h-5 w-5 text-accent"/>
                   エントリーを編集
-                </DialogTitle>
+                </UiDialogTitle>
               </DialogHeader>
-              <EntryForm 
-                isEditMode 
+              <EntryForm
+                isEditMode
                 id="edit-entry-form"
-                initialData={editingEntry} 
+                initialData={editingEntry}
                 onUpdateEntry={handleUpdateEntryInDialog}
                 onClose={handleCloseEditDialog}
               />
-              <DialogFooter className="mt-6 pt-4 border-t flex justify-center items-center gap-x-4"> 
+              <DialogFooter className="mt-6 pt-4 border-t flex justify-center items-center gap-x-4">
                 <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)}>
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
