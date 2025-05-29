@@ -138,24 +138,12 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
         </CardHeader>
 
         {isFilterUIVisible && (
-          <div className="p-4 pt-2"> {/* Removed border-y, adjusted top padding */}
-            { (startDate || endDate) && filteredEntries.length > 0 && (
-              <Alert variant="default" className="mb-4 bg-accent/10 border-accent/50">
-                <div className="flex items-center justify-between w-full flex-wrap gap-x-4 gap-y-1">
-                  <div className="flex items-center">
-                    <Percent className="h-4 w-4 !text-accent mr-2" />
-                    <UiAlertTitle className="text-accent font-medium">フィルター結果</UiAlertTitle>
-                  </div>
-                  <AlertDescription className="text-sm">
-                    選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
-                  </AlertDescription>
-                </div>
-              </Alert>
-            )}
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
+          <div className="p-4 pt-2 space-y-4">
+            {/* Date selection buttons - always visible when filter UI is open */}
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
+                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {startDate ? format(startDate, "PPP") : <span>開始日</span>}
                   </Button>
@@ -166,7 +154,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               </Popover>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
+                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {endDate ? format(endDate, "PPP") : <span>終了日</span>}
                   </Button>
@@ -176,18 +164,35 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 </PopoverContent>
               </Popover>
             </div>
+
+            {/* Filter results and clear button - visible only when a filter is active */}
             {(startDate || endDate) && (
-              <div className="mt-4 flex justify-center">
-                <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
-                  <FilterX className="mr-2 h-4 w-4" />
-                  フィルター解除
-                </Button>
-              </div>
+              <>
+                {filteredEntries.length > 0 && (
+                  <Alert variant="default" className="bg-accent/10 border-accent/50">
+                    <div className="flex items-center justify-between w-full flex-wrap gap-x-4 gap-y-1">
+                      <div className="flex items-center">
+                        <Percent className="h-4 w-4 !text-accent mr-2" />
+                        <UiAlertTitle className="text-accent font-medium">フィルター結果</UiAlertTitle>
+                      </div>
+                      <AlertDescription className="text-sm">
+                        選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
+                      </AlertDescription>
+                    </div>
+                  </Alert>
+                )}
+                <div className="flex justify-center">
+                  <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
+                    <FilterX className="mr-2 h-4 w-4" />
+                    フィルター解除
+                  </Button>
+                </div>
+              </>
             )}
           </div>
         )}
         
-        <CardContent className="pt-0"> {/* Adjusted padding based on filter UI visibility */}
+        <CardContent className={isFilterUIVisible ? 'pt-4' : 'pt-0'}>
           {filteredEntries.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center">表示するエントリーがありません。</p>
           ) : (
@@ -285,3 +290,4 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
+
