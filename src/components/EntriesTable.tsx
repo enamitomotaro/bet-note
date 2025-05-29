@@ -27,9 +27,9 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter,
+  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle,
+  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict
 } from "@/components/ui/alert-dialog";
 
 interface EntriesTableProps {
@@ -137,7 +137,15 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 フィルター解除
               </Button>
             )}
-            <Button variant="outline" onClick={() => setIsFilterUIVisible(!isFilterUIVisible)} aria-label="フィルター設定を開閉">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsFilterUIVisible(!isFilterUIVisible)} 
+              aria-label="フィルター設定を開閉"
+              className={cn(
+                "transition-colors",
+                (startDate || endDate) && "border-accent text-accent hover:text-accent/90 hover:border-accent"
+              )}
+            >
               <ListFilter className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">フィルター</span>
             </Button>
@@ -145,42 +153,46 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
         </CardHeader>
 
         {isFilterUIVisible && (
-          <div className="p-4 bg-accent/10 border-y border-accent/50 mx-0 mb-0 space-y-4" data-ai-hint="filter controls">
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-card/90", !startDate && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : <span>開始日</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
-                </PopoverContent>
-              </Popover>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-card/90", !endDate && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : <span>終了日</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {(startDate || endDate) && filteredEntries.length > 0 && (
-              <div className="text-sm text-accent font-medium flex items-center justify-center gap-2">
-                  <Percent className="h-4 w-4" />
-                  <span>選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span></span>
+          <div className="p-6 bg-accent/10 border border-accent/50 rounded-lg mx-0 my-4" data-ai-hint="filter controls">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+              {/* Calendar Buttons Group (Left) */}
+              <div className="flex flex-col sm:flex-row gap-4 items-center">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-card/90", !startDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "PPP") : <span>開始日</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                  </PopoverContent>
+                </Popover>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-card/90", !endDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "PPP") : <span>終了日</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
+                  </PopoverContent>
+                </Popover>
               </div>
-            )}
+
+              {/* Average Recovery Rate (Right, conditional) */}
+              {(startDate || endDate) && filteredEntries.length > 0 && (
+                <div className="mt-4 md:mt-0 text-sm text-accent font-medium flex items-center justify-center md:justify-start gap-2">
+                    <Percent className="h-4 w-4" />
+                    <span>選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span></span>
+                </div>
+              )}
+            </div>
           </div>
         )}
         
-        <CardContent className={isFilterUIVisible ? 'pt-4' : 'pt-6'}>
+        <CardContent className={isFilterUIVisible ? 'pt-0' : 'pt-6'}>
           {filteredEntries.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center">表示するエントリーがありません。</p>
           ) : (
@@ -277,4 +289,3 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
-
