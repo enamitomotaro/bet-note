@@ -28,7 +28,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -166,13 +165,17 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
           </div>
 
           { (startDate || endDate) && filteredEntries.length > 0 && (
-            <Alert variant="default" className="mb-4 bg-accent/10 border-accent/50">
-              <Percent className="h-4 w-4 !text-accent" />
-              <UiAlertTitle className="text-accent">フィルター結果</UiAlertTitle>
-              <AlertDescription>
-                選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
-              </AlertDescription>
-            </Alert>
+             <Alert variant="default" className="mb-4 bg-accent/10 border-accent/50">
+               <div className="flex items-center justify-between w-full flex-wrap">
+                 <div className="flex items-center">
+                   <Percent className="h-4 w-4 !text-accent mr-2" />
+                   <UiAlertTitle className="text-accent">フィルター結果</UiAlertTitle>
+                 </div>
+                 <AlertDescription className="ml-auto pl-2">
+                   選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
+                 </AlertDescription>
+               </div>
+             </Alert>
           )}
 
           {filteredEntries.length === 0 ? (
@@ -234,12 +237,12 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 onUpdateEntry={handleUpdateEntryInDialog}
                 onClose={handleCloseEditDialog}
               />
-              <DialogFooter className="mt-6 pt-4 border-t flex justify-center items-center gap-x-4">
-                <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)}>
+              <DialogFooter className="mt-6 pt-4 border-t flex justify-center items-center gap-x-6">
+                <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)} className="min-w-[100px]">
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
                 </Button>
-                <Button type="submit" form="edit-entry-form" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button type="submit" form="edit-entry-form" className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[100px]">
                   <Edit3 className="mr-2 h-4 w-4" />
                   更新
                 </Button>
@@ -271,3 +274,5 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
+
+    
