@@ -7,7 +7,7 @@ import { useBetEntries } from '@/hooks/useBetEntries';
 import { calculateStats } from '@/lib/calculations';
 import { Separator } from '@/components/ui/separator';
 import { useEffect, useState, useMemo } from 'react';
-import type { DashboardStats, BetEntry } from '@/lib/types';
+import type { DashboardStats } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -57,6 +57,12 @@ export default function DashboardPage() {
     setEndDate(undefined);
   };
 
+  const handleClearFiltersClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); // Prevent accordion from toggling
+    clearFilters();
+  };
+
+
   if (!isLoaded || !clientMounted) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -65,38 +71,31 @@ export default function DashboardPage() {
     );
   }
 
+  const isFilterActive = startDate || endDate;
+
   return (
     <>
       <Accordion type="single" collapsible className="w-full mb-8" data-ai-hint="filter accordion">
         <AccordionItem
           value="date-filter"
           className={cn(
-            "bg-card border rounded-lg", // AccordionItem IS the bordered box
-            (startDate || endDate) ? "border-accent" : "border-border"
+            "border-b", // Standard bottom border for accordion item
+            isFilterActive ? "border-accent" : "border-border" // Border color changes if filter is active
           )}
         >
-          {/* Header/Trigger Area */}
-          <div className={cn(
-            "flex items-center justify-between px-4 py-3",
-            // Add a bottom border to separate header from content ONLY when open
-            "data-[state=open]:border-b",
-            (startDate || endDate) ? "data-[state=open]:border-accent" : "data-[state=open]:border-border"
-          )}>
+          <div className={cn("flex items-center justify-between px-4")}>
             <AccordionTrigger
               className={cn(
-                "text-base hover:no-underline flex-grow flex items-center gap-2 p-0",
+                "py-4 text-base hover:no-underline flex-1 flex items-center gap-2 p-0 justify-start", // Ensure trigger content is left-aligned
               )}
             >
-              <ListFilter className="h-5 w-5 text-accent" />
+              <ListFilter className={cn("h-5 w-5", isFilterActive ? "text-accent" : "text-muted-foreground")} />
               <span className="text-foreground">期間フィルター</span>
             </AccordionTrigger>
-            {(startDate || endDate) && (
+            {isFilterActive && (
               <Button
                 variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent accordion from toggling
-                  clearFilters();
-                }}
+                onClick={handleClearFiltersClick}
                 className="text-accent hover:text-accent/90 h-auto p-1 ml-2 shrink-0"
                 aria-label="フィルターを解除"
               >
@@ -105,9 +104,7 @@ export default function DashboardPage() {
               </Button>
             )}
           </div>
-
-          {/* Content Area - Calendar buttons go here */}
-          <AccordionContent className="p-4"> {/* Simple padding, no extra borders */}
+          <AccordionContent className={cn("px-4 pt-2 pb-4")}> {/* Adjusted padding for content */}
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
