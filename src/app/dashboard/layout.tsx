@@ -13,6 +13,8 @@ export const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard/ai-predictor', label: 'AI予想', icon: Brain },
 ];
 
+const APP_NAME = "BetNote";
+
 export default function DashboardLayout({
   children,
 }: {
@@ -22,7 +24,7 @@ export default function DashboardLayout({
   const router = useRouter();
 
   const currentNavItem = navItems.find(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
-  const pageTitle = currentNavItem ? currentNavItem.label : "GallopTrack"; // Updated app name
+  const pageTitle = currentNavItem ? currentNavItem.label : APP_NAME;
 
   const handleTabChange = (value: string) => {
     router.push(value);
@@ -30,7 +32,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <AppHeader pageTitle={pageTitle} appName="GallopTrack" />
+      <AppHeader pageTitle={pageTitle} appName={APP_NAME} />
       <div className="container mx-auto px-4 md:px-8 py-6">
         <div className="flex justify-center mb-6 md:mb-8">
           <Tabs value={currentNavItem?.href || '/dashboard'} onValueChange={handleTabChange} className="w-full md:w-auto">
@@ -54,7 +56,7 @@ export default function DashboardLayout({
       </div>
       <footer className="border-t py-4 mt-auto">
         <div className="container mx-auto px-4 md:px-8 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} GallopTrack. All rights reserved.
+          © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
         </div>
       </footer>
     </div>

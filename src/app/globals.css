@@ -26,7 +26,7 @@ body {
     --muted: 0 0% 90%; /* Muted background */
     --muted-foreground: 0 0% 45.1%; /* Muted text */
 
-    --accent: 170 45% 45%; /* Teal Green */
+    --accent: 200 85% 55%; /* Sky Blue */
     --accent-foreground: 0 0% 98%; /* Light text for accent elements */
 
     --destructive: 0 84.2% 60.2%;
@@ -34,16 +34,16 @@ body {
 
     --border: 0 0% 85%; /* Adjusted border color */
     --input: 0 0% 85%; /* Adjusted input background */
-    --ring: 170 45% 45%; /* Accent color for rings - Teal Green */
+    --ring: 200 85% 55%; /* Accent color for rings - Sky Blue */
 
     --radius: 0.5rem;
 
     /* Chart colors - can be customized further if needed */
-    --chart-1: 170 45% 45%; /* Teal Green for charts */
-    --chart-2: 210 40% 50%; /* Muted Blue */
+    --chart-1: 200 85% 55%; /* Sky Blue for charts */
+    --chart-2: 220 40% 60%; /* Muted Indigo */
     --chart-3: 0 0% 50%; /* Medium Gray */
-    --chart-4: 120 30% 55%; /* Muted Green */
-    --chart-5: 0 70% 60%; /* Muted Red */
+    --chart-4: 150 40% 55%; /* Muted Sea Green */
+    --chart-5: 30 70% 60%; /* Muted Orange */
     
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -74,7 +74,7 @@ body {
     --muted: 0 0% 25%; /* Dark muted */
     --muted-foreground: 0 0% 60%; /* Lighter muted foreground */
 
-    --accent: 170 40% 35%; /* Teal Green (dark mode) */
+    --accent: 200 75% 45%; /* Sky Blue (dark mode) */
     --accent-foreground: 0 0% 98%; /* Dark accent foreground */
 
     --destructive: 0 70% 50%; /* Dark destructive */
@@ -82,14 +82,14 @@ body {
 
     --border: 0 0% 30%; /* Dark border */
     --input: 0 0% 30%; /* Dark input */
-    --ring: 170 40% 35%; /* Accent ring for dark mode - Teal Green (dark mode) */
+    --ring: 200 75% 45%; /* Accent ring for dark mode - Sky Blue (dark mode) */
     
     /* Chart colors for dark mode */
-    --chart-1: 170 40% 35%;
-    --chart-2: 210 50% 60%;
+    --chart-1: 200 75% 45%;
+    --chart-2: 220 50% 50%;
     --chart-3: 0 0% 70%;
-    --chart-4: 120 40% 65%;
-    --chart-5: 0 60% 70%;
+    --chart-4: 150 50% 55%;
+    --chart-5: 30 60% 50%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;

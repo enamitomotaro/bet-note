@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'GallopTrack',
-  description: 'あなたの競馬収支を管理・分析',
+  title: 'BetNote',
+  description: 'あなたの馬券収支を管理・分析',
 };
 
 export default function RootLayout({

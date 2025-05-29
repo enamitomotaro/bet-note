@@ -1,7 +1,7 @@
 
 "use client";
 import Link from 'next/link';
-import { TrendingUp } from 'lucide-react'; // Changed icon
+import { Ticket } from 'lucide-react'; // New icon
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AppHeaderProps {
@@ -17,7 +17,7 @@ export function AppHeader({ pageTitle, appName }: AppHeaderProps) {
       <div className="container mx-auto flex items-center justify-between h-10">
         {/* Left section: Logo */}
         <Link href="/dashboard" className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors shrink-0">
-          <TrendingUp className="h-7 w-7" /> {/* Changed icon */}
+          <Ticket className="h-7 w-7" /> {/* New icon */}
           <span className="text-xl font-semibold hidden sm:inline">{appName}</span>
         </Link>
 
