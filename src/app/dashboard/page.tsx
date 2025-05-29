@@ -5,7 +5,6 @@ import { DashboardCards } from '@/components/DashboardCards';
 import { ProfitChart } from '@/components/ProfitChart';
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { calculateStats } from '@/lib/calculations';
-import { Separator } from '@/components/ui/separator';
 import { useEffect, useState, useMemo } from 'react';
 import type { DashboardStats } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -58,7 +57,7 @@ export default function DashboardPage() {
   };
 
   const handleClearFiltersClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation(); // Prevent accordion from toggling
+    e.stopPropagation(); 
     clearFilters();
   };
 
@@ -79,14 +78,15 @@ export default function DashboardPage() {
         <AccordionItem
           value="date-filter"
           className={cn(
-            "border-b", // Standard bottom border for accordion item
-            isFilterActive ? "border-accent" : "border-border" // Border color changes if filter is active
+            "border-b", 
+            isFilterActive ? "border-accent" : "border-border" 
           )}
         >
           <div className={cn("flex items-center justify-between px-4")}>
             <AccordionTrigger
               className={cn(
-                "py-4 text-base hover:no-underline flex-1 flex items-center gap-2 p-0 justify-start", // Ensure trigger content is left-aligned
+                "py-4 text-base hover:no-underline flex-1 flex items-center gap-2 p-0 justify-start",
+                "data-[state=open]:border-b-0"
               )}
             >
               <ListFilter className={cn("h-5 w-5", isFilterActive ? "text-accent" : "text-muted-foreground")} />
@@ -104,7 +104,7 @@ export default function DashboardPage() {
               </Button>
             )}
           </div>
-          <AccordionContent className={cn("px-4 pt-2 pb-4")}> {/* Adjusted padding for content */}
+          <AccordionContent className={cn("px-4 pt-2 pb-4")}>
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
@@ -134,7 +134,7 @@ export default function DashboardPage() {
       </Accordion>
 
       <DashboardCards stats={dashboardStats} />
-      <Separator className="my-8" />
+      {/* <Separator className="my-8" />  Removed this line */}
       <div className="grid grid-cols-1 gap-8">
         <ProfitChart entries={filteredEntries} />
       </div>
