@@ -69,23 +69,36 @@ export default function DashboardPage() {
     <>
       <Accordion type="single" collapsible className="w-full mb-8" data-ai-hint="filter accordion">
         <AccordionItem value="date-filter">
-          <AccordionTrigger 
+          <div 
             className={cn(
-              "px-4 py-3 text-base hover:no-underline bg-card border rounded-lg data-[state=open]:rounded-b-none flex justify-between items-center",
-              (startDate || endDate) && "border-accent"
+              "px-4 py-3 bg-card border rounded-lg data-[state=open]:rounded-b-none flex justify-between items-center",
+              (startDate || endDate) && "border-accent" // Apply accent border if filters are active
             )}
           >
-            <div className="flex items-center gap-2 text-foreground">
+            <AccordionTrigger
+              className={cn(
+                "text-base hover:no-underline flex-grow flex items-center gap-2 p-0",
+                // Remove default AccordionTrigger padding as it's handled by the parent div
+                // Also remove default justify-between as we handle it with flex-grow and the sibling button
+              )}
+            >
               <ListFilter className="h-5 w-5 text-accent" />
-              <span>期間フィルター</span>
-            </div>
+              <span className="text-foreground">期間フィルター</span>
+            </AccordionTrigger>
             {(startDate || endDate) && (
-              <Button variant="ghost" onClick={(e) => { e.stopPropagation(); clearFilters(); }} className="text-accent hover:text-accent/90 h-auto p-1">
+              <Button 
+                variant="ghost" 
+                onClick={(e) => { 
+                  e.stopPropagation(); // Prevent accordion from toggling
+                  clearFilters(); 
+                }} 
+                className="text-accent hover:text-accent/90 h-auto p-1 ml-2 shrink-0" // Added shrink-0
+              >
                 <FilterX className="mr-1 h-4 w-4" />
                 解除
               </Button>
             )}
-          </AccordionTrigger>
+          </div>
           <AccordionContent className="bg-card border border-t-0 rounded-b-lg p-6">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
@@ -123,4 +136,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
