@@ -71,15 +71,13 @@ export default function DashboardPage() {
         <AccordionItem value="date-filter">
           <div 
             className={cn(
-              "px-4 py-3 bg-card border rounded-lg data-[state=open]:rounded-b-none flex justify-between items-center",
-              (startDate || endDate) && "border-accent" // Apply accent border if filters are active
+              "px-4 py-3 bg-card border rounded-lg data-[state=open]:rounded-b-none data-[state=open]:border-b-0 flex justify-between items-center",
+              (startDate || endDate) && "border-accent"
             )}
           >
             <AccordionTrigger
               className={cn(
                 "text-base hover:no-underline flex-grow flex items-center gap-2 p-0",
-                // Remove default AccordionTrigger padding as it's handled by the parent div
-                // Also remove default justify-between as we handle it with flex-grow and the sibling button
               )}
             >
               <ListFilter className="h-5 w-5 text-accent" />
@@ -89,17 +87,17 @@ export default function DashboardPage() {
               <Button 
                 variant="ghost" 
                 onClick={(e) => { 
-                  e.stopPropagation(); // Prevent accordion from toggling
+                  e.stopPropagation(); 
                   clearFilters(); 
                 }} 
-                className="text-accent hover:text-accent/90 h-auto p-1 ml-2 shrink-0" // Added shrink-0
+                className="text-accent hover:text-accent/90 h-auto p-1 ml-2 shrink-0"
               >
                 <FilterX className="mr-1 h-4 w-4" />
                 解除
               </Button>
             )}
           </div>
-          <AccordionContent className="bg-card border border-t-0 rounded-b-lg p-6">
+          <AccordionContent className="bg-card border border-t-0 rounded-b-lg p-4">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
