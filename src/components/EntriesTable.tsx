@@ -28,10 +28,11 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter,
+  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle,
+  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict
 } from "@/components/ui/alert-dialog";
+import { Separator } from './ui/separator';
 
 interface EntriesTableProps {
   entries: BetEntry[];
@@ -47,6 +48,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [entryToDeleteId, setEntryToDeleteId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isFilterUIVisible, setIsFilterUIVisible] = useState(false);
 
   useEffect(() => {
     setClientMounted(true);
@@ -106,6 +108,19 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     }
   };
 
+  const activeFilterText = useMemo(() => {
+    if (startDate && endDate) {
+      return `${format(startDate, "yyyy/MM/dd")} 〜 ${format(endDate, "yyyy/MM/dd")}`;
+    }
+    if (startDate) {
+      return `開始: ${format(startDate, "yyyy/MM/dd")}`;
+    }
+    if (endDate) {
+      return `終了: ${format(endDate, "yyyy/MM/dd")}`;
+    }
+    return "期間未設定";
+  }, [startDate, endDate]);
+
   if (!clientMounted) {
     return (
         <Card data-ai-hint="table spreadsheet">
@@ -130,16 +145,17 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
             <ListFilter className="h-6 w-6 text-accent" />
             エントリー履歴
           </CardTitle>
-          {(startDate || endDate) && (
-            <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
-              <FilterX className="mr-2 h-4 w-4" />
-              フィルター解除
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground hidden md:inline">{activeFilterText}</span>
+            <Button variant="outline" size="icon" onClick={() => setIsFilterUIVisible(!isFilterUIVisible)} aria-label="フィルター設定を開閉">
+              <ListFilter className="h-4 w-4" />
             </Button>
-          )}
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex justify-center mb-4">
-            <div className="flex flex-col md:flex-row gap-4 items-center">
+
+        {isFilterUIVisible && (
+          <div className="p-4 border-y">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn("w-full md:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
@@ -163,16 +179,26 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 </PopoverContent>
               </Popover>
             </div>
+            {(startDate || endDate) && (
+              <div className="mt-4 flex justify-center">
+                <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
+                  <FilterX className="mr-2 h-4 w-4" />
+                  フィルター解除
+                </Button>
+              </div>
+            )}
           </div>
-
+        )}
+        
+        <CardContent className="pt-6">
           { (startDate || endDate) && filteredEntries.length > 0 && (
              <Alert variant="default" className="mb-4 bg-accent/10 border-accent/50">
-               <div className="flex items-center justify-between w-full flex-wrap">
+               <div className="flex items-center justify-between w-full flex-wrap gap-x-4 gap-y-1">
                  <div className="flex items-center">
                    <Percent className="h-4 w-4 !text-accent mr-2" />
-                   <UiAlertTitle className="text-accent">フィルター結果</UiAlertTitle>
+                   <UiAlertTitle className="text-accent font-medium">フィルター結果</UiAlertTitle>
                  </div>
-                 <AlertDescription className="ml-auto pl-2 md:pl-4">
+                 <AlertDescription className="text-sm">
                    選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
                  </AlertDescription>
                </div>
@@ -276,3 +302,4 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
+
