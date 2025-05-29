@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: '競馬エース',
+  title: 'GallopTrack',
   description: 'あなたの競馬収支を管理・分析',
 };
 

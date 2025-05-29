@@ -22,7 +22,7 @@ export default function DashboardLayout({
   const router = useRouter();
 
   const currentNavItem = navItems.find(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
-  const pageTitle = currentNavItem ? currentNavItem.label : "競馬エース";
+  const pageTitle = currentNavItem ? currentNavItem.label : "GallopTrack"; // Updated app name
 
   const handleTabChange = (value: string) => {
     router.push(value);
@@ -30,7 +30,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <AppHeader pageTitle={pageTitle} />
+      <AppHeader pageTitle={pageTitle} appName="GallopTrack" />
       <div className="container mx-auto px-4 md:px-8 py-6">
         <div className="flex justify-center mb-6 md:mb-8">
           <Tabs value={currentNavItem?.href || '/dashboard'} onValueChange={handleTabChange} className="w-full md:w-auto">
@@ -39,7 +39,7 @@ export default function DashboardLayout({
                 <TabsTrigger
                   key={item.href}
                   value={item.href}
-                  className="w-full md:w-auto px-2 py-2 text-xs md:text-sm md:px-4 md:py-1.5"
+                  className="w-full md:w-auto px-2 py-2 text-xs md:text-sm md:px-4 md:py-2"
                 >
                   <item.icon className="h-4 w-4 mr-0 md:mr-2" />
                   <span className="hidden md:inline min-w-32">{item.label}</span>
@@ -54,7 +54,7 @@ export default function DashboardLayout({
       </div>
       <footer className="border-t py-4 mt-auto">
         <div className="container mx-auto px-4 md:px-8 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} 競馬エース. All rights reserved.
+          © {new Date().getFullYear()} GallopTrack. All rights reserved.
         </div>
       </footer>
     </div>

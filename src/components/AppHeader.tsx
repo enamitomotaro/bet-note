@@ -1,14 +1,15 @@
 
 "use client";
 import Link from 'next/link';
-import { Trophy } from 'lucide-react';
+import { TrendingUp } from 'lucide-react'; // Changed icon
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AppHeaderProps {
   pageTitle: string;
+  appName: string;
 }
 
-export function AppHeader({ pageTitle }: AppHeaderProps) {
+export function AppHeader({ pageTitle, appName }: AppHeaderProps) {
   const isMobile = useIsMobile();
 
   return (
@@ -16,8 +17,8 @@ export function AppHeader({ pageTitle }: AppHeaderProps) {
       <div className="container mx-auto flex items-center justify-between h-10">
         {/* Left section: Logo */}
         <Link href="/dashboard" className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors shrink-0">
-          <Trophy className="h-7 w-7" />
-          <span className="text-xl font-semibold hidden sm:inline">競馬エース</span>
+          <TrendingUp className="h-7 w-7" /> {/* Changed icon */}
+          <span className="text-xl font-semibold hidden sm:inline">{appName}</span>
         </Link>
 
         {/* Mobile: Page title, centered. Right placeholder to help centering. */}
@@ -26,7 +27,7 @@ export function AppHeader({ pageTitle }: AppHeaderProps) {
             <h1 className="text-lg font-medium text-foreground text-center flex-grow mx-2 truncate">
               {pageTitle}
             </h1>
-            {/* Placeholder to balance logo for centering title, matches Trophy icon size */}
+            {/* Placeholder to balance logo for centering title, matches icon size */}
             <div className="w-7 h-7 shrink-0"></div> 
           </>
         )}
