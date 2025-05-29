@@ -28,7 +28,7 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
+  AlertDialogFooter as UiAlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -238,11 +238,12 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 onUpdateEntry={handleUpdateEntryInDialog}
                 onClose={handleCloseEditDialog}
               />
-              <DialogFooter className="mt-6 pt-4 border-t flex justify-between items-center">
+              <DialogFooter className="mt-6 pt-4 border-t flex items-center">
                 <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)} className="min-w-[100px]">
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
                 </Button>
+                <div className="flex-grow" />
                 <Button type="submit" form="edit-entry-form" className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[100px]">
                   <Edit3 className="mr-2 h-4 w-4" />
                   更新
@@ -275,4 +276,3 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
-
