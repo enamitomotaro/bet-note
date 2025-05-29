@@ -19,7 +19,6 @@ import { format, parseISO, isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { calculateAverageRecoveryRate, formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Alert, AlertDescription, AlertTitle as UiAlertTitle } from './ui/alert';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
@@ -138,12 +137,11 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
         </CardHeader>
 
         {isFilterUIVisible && (
-          <div className="p-4 pt-2 space-y-4">
-            {/* Date selection buttons - always visible when filter UI is open */}
+          <div className="p-4 bg-accent/10 border border-accent/50 rounded-lg mx-4 mb-4 space-y-4" data-ai-hint="filter controls">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
+                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-card/90", !startDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {startDate ? format(startDate, "PPP") : <span>開始日</span>}
                   </Button>
@@ -154,7 +152,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               </Popover>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
+                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-card/90", !endDate && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {endDate ? format(endDate, "PPP") : <span>終了日</span>}
                   </Button>
@@ -165,21 +163,13 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               </Popover>
             </div>
 
-            {/* Filter results and clear button - visible only when a filter is active */}
             {(startDate || endDate) && (
               <>
                 {filteredEntries.length > 0 && (
-                  <Alert variant="default" className="bg-accent/10 border-accent/50">
-                    <div className="flex items-center justify-between w-full flex-wrap gap-x-4 gap-y-1">
-                      <div className="flex items-center">
-                        <Percent className="h-4 w-4 !text-accent mr-2" />
-                        <UiAlertTitle className="text-accent font-medium">フィルター結果</UiAlertTitle>
-                      </div>
-                      <AlertDescription className="text-sm">
-                        選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
-                      </AlertDescription>
-                    </div>
-                  </Alert>
+                  <div className="text-sm text-accent font-medium flex items-center justify-center gap-2">
+                     <Percent className="h-4 w-4" />
+                     <span>選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span></span>
+                  </div>
                 )}
                 <div className="flex justify-center">
                   <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
@@ -192,7 +182,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
           </div>
         )}
         
-        <CardContent className={isFilterUIVisible ? 'pt-4' : 'pt-0'}>
+        <CardContent className={isFilterUIVisible ? 'pt-0' : 'pt-6'}>
           {filteredEntries.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center">表示するエントリーがありません。</p>
           ) : (
@@ -253,7 +243,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 onClose={handleCloseEditDialog}
               />
               <DialogFooter className="mt-6 pt-4 border-t flex items-center">
-                <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)} className="min-w-[100px]">
+                 <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)} className="min-w-[100px]">
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
                 </Button>
@@ -290,4 +280,3 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
-
