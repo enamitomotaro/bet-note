@@ -14,7 +14,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, FilterX, ListFilter } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function DashboardPage() {
   const { entries, isLoaded } = useBetEntries();
@@ -62,22 +67,16 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Card className="mb-8" data-ai-hint="calendar filter">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <ListFilter className="h-5 w-5 text-accent" />
-            期間フィルター
-          </CardTitle>
-          {(startDate || endDate) && (
-            <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
-              <FilterX className="mr-2 h-4 w-4" />
-              フィルター解除
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center">
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
+      <Accordion type="single" collapsible className="w-full mb-8" data-ai-hint="filter accordion">
+        <AccordionItem value="date-filter">
+          <AccordionTrigger className="px-4 py-3 text-base hover:no-underline bg-card border rounded-lg data-[state=open]:rounded-b-none">
+            <div className="flex items-center gap-2 text-foreground">
+              <ListFilter className="h-5 w-5 text-accent" />
+              <span>期間フィルター</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="bg-card border border-t-0 rounded-b-lg p-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
@@ -101,9 +100,17 @@ export default function DashboardPage() {
                 </PopoverContent>
               </Popover>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            {(startDate || endDate) && (
+              <div className="mt-4 flex justify-center">
+                <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
+                  <FilterX className="mr-2 h-4 w-4" />
+                  フィルター解除
+                </Button>
+              </div>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <DashboardCards stats={dashboardStats} />
       <Separator className="my-8" />
