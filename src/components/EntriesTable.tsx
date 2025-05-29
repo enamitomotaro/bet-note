@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, ListFilter, FilterX, Pencil, Trash2, Percent, Edit3 } from 'lucide-react';
+import { CalendarIcon, ListFilter, FilterX, Pencil, Percent, Edit3, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO, isValid } from 'date-fns';
@@ -27,9 +27,9 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
+  AlertDialogFooter as UiAlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict
+  AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
 interface EntriesTableProps {
@@ -129,14 +129,19 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
       <Card data-ai-hint="table spreadsheet">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl flex items-center gap-2">
-            <ListFilter className="h-6 w-6 text-accent" />
+            <ListFilter className={cn("h-6 w-6", isFilterActive ? "text-accent" : "text-muted-foreground")} />
             エントリー履歴
           </CardTitle>
           <div className="flex items-center gap-2">
             {isFilterActive && (
-              <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
+              <Button 
+                variant="ghost" 
+                onClick={clearFilters} 
+                className="text-accent hover:bg-accent hover:text-accent-foreground"
+                aria-label="フィルターを解除"
+              >
                 <FilterX className="mr-2 h-4 w-4" />
-                フィルター解除
+                解除
               </Button>
             )}
             <Button 
@@ -145,7 +150,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               aria-label="フィルター設定を開閉"
               className={cn(
                 "transition-colors",
-                isFilterActive && "border-accent text-accent hover:text-accent/90 hover:border-accent"
+                isFilterActive && "border-accent text-accent hover:text-accent-foreground" 
               )}
             >
               <ListFilter className="h-4 w-4 md:mr-2" />
@@ -161,7 +166,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               <div className="flex flex-col sm:flex-row gap-4 items-center">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
+                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-accent hover:text-accent-foreground", !startDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {startDate ? format(startDate, "PPP") : <span>開始日</span>}
                     </Button>
@@ -172,7 +177,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 </Popover>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
+                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-accent hover:text-accent-foreground", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {endDate ? format(endDate, "PPP") : <span>終了日</span>}
                     </Button>
@@ -223,7 +228,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                       </TableCell>
                       <TableCell className="text-right">{formatPercentage(entry.roi)}</TableCell>
                       <TableCell className="text-center">
-                         <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)} aria-label="編集">
+                         <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)} aria-label="編集" className="hover:bg-accent hover:text-accent-foreground">
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -259,7 +264,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
                 </Button>
-                <Button type="submit" form="edit-entry-form" className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[100px]">
+                <Button type="submit" form="edit-entry-form" className="bg-accent hover:bg-accent/90 text-accent-foreground min-w-[100px]">
                   <Edit3 className="mr-2 h-4 w-4" />
                   更新
                 </Button>
@@ -291,3 +296,5 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
+
+    

@@ -75,18 +75,22 @@ export default function DashboardPage() {
   return (
     <>
       <Accordion type="single" collapsible className="w-full mb-8" data-ai-hint="filter accordion">
-        <AccordionItem
-          value="date-filter"
+        <AccordionItem 
+          value="date-filter" 
           className={cn(
             "border-b", 
             isFilterActive ? "border-accent" : "border-border" 
           )}
         >
-          <div className={cn("flex items-center justify-between px-4")}>
+          <div className={cn(
+              "flex items-center justify-between px-4 py-3",
+              "data-[state=open]:border-b-0"
+            )}
+          >
             <AccordionTrigger
               className={cn(
-                "py-4 text-base hover:no-underline flex-1 flex items-center gap-2 p-0 justify-start",
-                "data-[state=open]:border-b-0"
+                "py-0 text-base hover:no-underline flex-1 flex items-center gap-2 p-0 justify-start",
+                "data-[state=open]:border-b-0" 
               )}
             >
               <ListFilter className={cn("h-5 w-5", isFilterActive ? "text-accent" : "text-muted-foreground")} />
@@ -96,7 +100,7 @@ export default function DashboardPage() {
               <Button
                 variant="ghost"
                 onClick={handleClearFiltersClick}
-                className="text-accent hover:text-accent/90 h-auto p-1 ml-2 shrink-0"
+                className="text-accent hover:bg-accent hover:text-accent-foreground h-auto p-1 ml-2 shrink-0"
                 aria-label="フィルターを解除"
               >
                 <FilterX className="mr-1 h-4 w-4" />
@@ -134,10 +138,11 @@ export default function DashboardPage() {
       </Accordion>
 
       <DashboardCards stats={dashboardStats} />
-      {/* <Separator className="my-8" />  Removed this line */}
       <div className="grid grid-cols-1 gap-8">
         <ProfitChart entries={filteredEntries} />
       </div>
     </>
   );
 }
+
+    
