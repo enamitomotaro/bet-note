@@ -68,11 +68,13 @@ export default function DashboardPage() {
   return (
     <>
       <Accordion type="single" collapsible className="w-full mb-8" data-ai-hint="filter accordion">
-        <AccordionItem value="date-filter">
+        {/* Remove default border from AccordionItem to create a single continuous bordered box */}
+        <AccordionItem value="date-filter" className="border-0"> 
+          {/* This div is the container for the trigger and the clear button */}
           <div 
             className={cn(
               "px-4 py-3 bg-card border rounded-lg data-[state=open]:rounded-b-none data-[state=open]:border-b-0 flex justify-between items-center",
-              (startDate || endDate) && "border-accent"
+              (startDate || endDate) && "border-accent" // Apply accent border if filter is active
             )}
           >
             <AccordionTrigger
@@ -97,7 +99,13 @@ export default function DashboardPage() {
               </Button>
             )}
           </div>
-          <AccordionContent className="bg-card border border-t-0 rounded-b-lg p-4">
+          {/* AccordionContent will visually merge with the div above when open */}
+          <AccordionContent 
+            className={cn(
+              "bg-card p-4 border-l border-r border-b rounded-b-lg", // Base styles for content area
+              (startDate || endDate) ? "border-accent" : "border-border" // Match border color with trigger
+            )}
+          >
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
