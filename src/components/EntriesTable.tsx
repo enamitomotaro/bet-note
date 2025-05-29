@@ -28,6 +28,7 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter, // Added AlertDialogFooter here
   AlertDialogHeader,
   AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -171,7 +172,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                    <Percent className="h-4 w-4 !text-accent mr-2" />
                    <UiAlertTitle className="text-accent">フィルター結果</UiAlertTitle>
                  </div>
-                 <AlertDescription className="ml-auto pl-2">
+                 <AlertDescription className="ml-auto pl-2 md:pl-4">
                    選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
                  </AlertDescription>
                </div>
@@ -274,5 +275,3 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
-
-    
