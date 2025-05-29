@@ -68,15 +68,20 @@ export default function DashboardPage() {
   return (
     <>
       <Accordion type="single" collapsible className="w-full mb-8" data-ai-hint="filter accordion">
-        {/* Remove default border from AccordionItem to create a single continuous bordered box */}
-        <AccordionItem value="date-filter" className="border-0"> 
-          {/* This div is the container for the trigger and the clear button */}
-          <div 
-            className={cn(
-              "px-4 py-3 bg-card border rounded-lg data-[state=open]:rounded-b-none data-[state=open]:border-b-0 flex justify-between items-center",
-              (startDate || endDate) && "border-accent" // Apply accent border if filter is active
-            )}
-          >
+        <AccordionItem
+          value="date-filter"
+          className={cn(
+            "bg-card border rounded-lg", // AccordionItem IS the bordered box
+            (startDate || endDate) ? "border-accent" : "border-border"
+          )}
+        >
+          {/* Header/Trigger Area */}
+          <div className={cn(
+            "flex items-center justify-between px-4 py-3",
+            // Add a bottom border to separate header from content ONLY when open
+            "data-[state=open]:border-b",
+            (startDate || endDate) ? "data-[state=open]:border-accent" : "data-[state=open]:border-border"
+          )}>
             <AccordionTrigger
               className={cn(
                 "text-base hover:no-underline flex-grow flex items-center gap-2 p-0",
@@ -86,26 +91,23 @@ export default function DashboardPage() {
               <span className="text-foreground">期間フィルター</span>
             </AccordionTrigger>
             {(startDate || endDate) && (
-              <Button 
-                variant="ghost" 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  clearFilters(); 
-                }} 
+              <Button
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent accordion from toggling
+                  clearFilters();
+                }}
                 className="text-accent hover:text-accent/90 h-auto p-1 ml-2 shrink-0"
+                aria-label="フィルターを解除"
               >
                 <FilterX className="mr-1 h-4 w-4" />
                 解除
               </Button>
             )}
           </div>
-          {/* AccordionContent will visually merge with the div above when open */}
-          <AccordionContent 
-            className={cn(
-              "bg-card p-4 border-l border-r border-b rounded-b-lg", // Base styles for content area
-              (startDate || endDate) ? "border-accent" : "border-border" // Match border color with trigger
-            )}
-          >
+
+          {/* Content Area - Calendar buttons go here */}
+          <AccordionContent className="p-4"> {/* Simple padding, no extra borders */}
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
