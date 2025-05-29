@@ -28,7 +28,7 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
+  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
   AlertDialogHeader,
   AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -261,7 +261,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               この操作は元に戻せません。エントリーが完全に削除されます。
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <UiAlertDialogFooter>
             <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>キャンセル</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteEntry}
@@ -269,7 +269,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
             >
               削除する
             </AlertDialogAction>
-          </AlertDialogFooter>
+          </UiAlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
