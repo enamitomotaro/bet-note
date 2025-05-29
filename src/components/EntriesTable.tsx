@@ -130,14 +130,22 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
             <ListFilter className="h-6 w-6 text-accent" />
             エントリー履歴
           </CardTitle>
-          <Button variant="outline" onClick={() => setIsFilterUIVisible(!isFilterUIVisible)} aria-label="フィルター設定を開閉">
-            <ListFilter className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">フィルター</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            {(startDate || endDate) && (
+              <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
+                <FilterX className="mr-2 h-4 w-4" />
+                フィルター解除
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setIsFilterUIVisible(!isFilterUIVisible)} aria-label="フィルター設定を開閉">
+              <ListFilter className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">フィルター</span>
+            </Button>
+          </div>
         </CardHeader>
 
         {isFilterUIVisible && (
-          <div className="p-4 bg-accent/10 border border-accent/50 rounded-lg mx-4 mb-4 space-y-4" data-ai-hint="filter controls">
+          <div className="p-4 bg-accent/10 border-y border-accent/50 mx-0 mb-0 space-y-4" data-ai-hint="filter controls">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
@@ -163,26 +171,16 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               </Popover>
             </div>
 
-            {(startDate || endDate) && (
-              <>
-                {filteredEntries.length > 0 && (
-                  <div className="text-sm text-accent font-medium flex items-center justify-center gap-2">
-                     <Percent className="h-4 w-4" />
-                     <span>選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span></span>
-                  </div>
-                )}
-                <div className="flex justify-center">
-                  <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
-                    <FilterX className="mr-2 h-4 w-4" />
-                    フィルター解除
-                  </Button>
-                </div>
-              </>
+            {(startDate || endDate) && filteredEntries.length > 0 && (
+              <div className="text-sm text-accent font-medium flex items-center justify-center gap-2">
+                  <Percent className="h-4 w-4" />
+                  <span>選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span></span>
+              </div>
             )}
           </div>
         )}
         
-        <CardContent className={isFilterUIVisible ? 'pt-0' : 'pt-6'}>
+        <CardContent className={isFilterUIVisible ? 'pt-4' : 'pt-6'}>
           {filteredEntries.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center">表示するエントリーがありません。</p>
           ) : (
@@ -242,12 +240,11 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 onUpdateEntry={handleUpdateEntryInDialog}
                 onClose={handleCloseEditDialog}
               />
-              <DialogFooter className="mt-6 pt-4 border-t flex items-center">
-                 <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)} className="min-w-[100px]">
+              <DialogFooter className="mt-6 pt-4 border-t flex items-center justify-between">
+                <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)} className="min-w-[100px]">
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
                 </Button>
-                <div className="flex-grow" />
                 <Button type="submit" form="edit-entry-form" className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[100px]">
                   <Edit3 className="mr-2 h-4 w-4" />
                   更新
@@ -280,3 +277,4 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
+
