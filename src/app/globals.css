@@ -26,7 +26,7 @@ body {
     --muted: 0 0% 90%; /* Muted background */
     --muted-foreground: 0 0% 45.1%; /* Muted text */
 
-    --accent: 200 85% 55%; /* Sky Blue */
+    --accent: 140 60% 35%; /* Turf Green */
     --accent-foreground: 0 0% 98%; /* Light text for accent elements */
 
     --destructive: 0 84.2% 60.2%;
@@ -34,12 +34,12 @@ body {
 
     --border: 0 0% 85%; /* Adjusted border color */
     --input: 0 0% 85%; /* Adjusted input background */
-    --ring: 200 85% 55%; /* Accent color for rings - Sky Blue */
+    --ring: 140 60% 35%; /* Accent color for rings - Turf Green */
 
     --radius: 0.5rem;
 
     /* Chart colors - can be customized further if needed */
-    --chart-1: 200 85% 55%; /* Sky Blue for charts */
+    --chart-1: 140 60% 35%; /* Turf Green for charts */
     --chart-2: 220 40% 60%; /* Muted Indigo */
     --chart-3: 0 0% 50%; /* Medium Gray */
     --chart-4: 150 40% 55%; /* Muted Sea Green */
@@ -74,18 +74,18 @@ body {
     --muted: 0 0% 25%; /* Dark muted */
     --muted-foreground: 0 0% 60%; /* Lighter muted foreground */
 
-    --accent: 200 75% 45%; /* Sky Blue (dark mode) */
-    --accent-foreground: 0 0% 98%; /* Dark accent foreground */
+    --accent: 140 50% 45%; /* Turf Green (dark mode) */
+    --accent-foreground: 0 0% 98%; /* Light text for accent elements */
 
     --destructive: 0 70% 50%; /* Dark destructive */
     --destructive-foreground: 0 0% 95%; /* Light destructive foreground */
 
     --border: 0 0% 30%; /* Dark border */
     --input: 0 0% 30%; /* Dark input */
-    --ring: 200 75% 45%; /* Accent ring for dark mode - Sky Blue (dark mode) */
+    --ring: 140 50% 45%; /* Accent ring for dark mode - Turf Green (dark mode) */
     
     /* Chart colors for dark mode */
-    --chart-1: 200 75% 45%;
+    --chart-1: 140 50% 45%;
     --chart-2: 220 50% 50%;
     --chart-3: 0 0% 70%;
     --chart-4: 150 50% 55%;
