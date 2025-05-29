@@ -27,9 +27,9 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
+  AlertDialogFooter as UiAlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict
+  AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
 interface EntriesTableProps {
@@ -153,7 +153,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
         </CardHeader>
 
         {isFilterUIVisible && (
-          <div className="p-6 bg-accent/10 border border-accent/50 rounded-lg mx-0 my-4" data-ai-hint="filter controls">
+          <div className="p-6 bg-accent/10 border border-accent/50 rounded-lg mx-6 my-4" data-ai-hint="filter controls">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
               {/* Calendar Buttons Group (Left) */}
               <div className="flex flex-col sm:flex-row gap-4 items-center">
@@ -289,3 +289,4 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
+
