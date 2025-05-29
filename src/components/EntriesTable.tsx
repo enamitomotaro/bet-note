@@ -27,9 +27,9 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter,
+  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle,
+  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict
 } from "@/components/ui/alert-dialog";
 
 interface EntriesTableProps {
@@ -122,6 +122,8 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     );
   }
 
+  const isFilterActive = startDate || endDate;
+
   return (
     <>
       <Card data-ai-hint="table spreadsheet">
@@ -131,7 +133,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
             エントリー履歴
           </CardTitle>
           <div className="flex items-center gap-2">
-            {(startDate || endDate) && (
+            {isFilterActive && (
               <Button variant="ghost" onClick={clearFilters} className="text-accent hover:text-accent/90">
                 <FilterX className="mr-2 h-4 w-4" />
                 フィルター解除
@@ -143,7 +145,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               aria-label="フィルター設定を開閉"
               className={cn(
                 "transition-colors",
-                (startDate || endDate) && "border-accent text-accent hover:text-accent/90 hover:border-accent"
+                isFilterActive && "border-accent text-accent hover:text-accent/90 hover:border-accent"
               )}
             >
               <ListFilter className="h-4 w-4 md:mr-2" />
@@ -159,7 +161,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               <div className="flex flex-col sm:flex-row gap-4 items-center">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-card/90", !startDate && "text-muted-foreground")}>
+                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {startDate ? format(startDate, "PPP") : <span>開始日</span>}
                     </Button>
@@ -170,7 +172,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 </Popover>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-card/90", !endDate && "text-muted-foreground")}>
+                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {endDate ? format(endDate, "PPP") : <span>終了日</span>}
                     </Button>
@@ -182,7 +184,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               </div>
 
               {/* Average Recovery Rate (Right, conditional) */}
-              {(startDate || endDate) && filteredEntries.length > 0 && (
+              {isFilterActive && filteredEntries.length > 0 && (
                 <div className="mt-4 md:mt-0 text-sm text-accent font-medium flex items-center justify-center md:justify-start gap-2">
                     <Percent className="h-4 w-4" />
                     <span>選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span></span>
@@ -222,7 +224,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                       <TableCell className="text-right">{formatPercentage(entry.roi)}</TableCell>
                       <TableCell className="text-center">
                          <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)} aria-label="編集">
-                          <Pencil className="h-4 w-4 text-blue-600" />
+                          <Pencil className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -289,4 +291,3 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
-

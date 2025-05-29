@@ -103,6 +103,7 @@ export function EntryForm({
   const cardTitleText = isEditMode ? "エントリーを編集" : "新しいエントリー記録";
   const SubmitIconForAddMode = PlusCircle;
   const submitButtonTextForAddMode = "記録を追加";
+  const submitButtonTextForEditMode = "更新";
 
 
   return (
@@ -215,7 +216,7 @@ export function EntryForm({
                     リセット
                   </Button>
                 )}
-                <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   <SubmitIconForAddMode className="mr-2 h-4 w-4" />
                   {submitButtonTextForAddMode}
                 </Button>
