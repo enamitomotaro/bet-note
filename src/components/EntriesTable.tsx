@@ -28,11 +28,10 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
+  AlertDialogFooter as UiAlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict
+  AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Separator } from './ui/separator';
 
 interface EntriesTableProps {
   entries: BetEntry[];
@@ -108,19 +107,6 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     }
   };
 
-  const activeFilterText = useMemo(() => {
-    if (startDate && endDate) {
-      return `${format(startDate, "yyyy/MM/dd")} 〜 ${format(endDate, "yyyy/MM/dd")}`;
-    }
-    if (startDate) {
-      return `開始: ${format(startDate, "yyyy/MM/dd")}`;
-    }
-    if (endDate) {
-      return `終了: ${format(endDate, "yyyy/MM/dd")}`;
-    }
-    return "期間未設定";
-  }, [startDate, endDate]);
-
   if (!clientMounted) {
     return (
         <Card data-ai-hint="table spreadsheet">
@@ -145,16 +131,27 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
             <ListFilter className="h-6 w-6 text-accent" />
             エントリー履歴
           </CardTitle>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground hidden md:inline">{activeFilterText}</span>
-            <Button variant="outline" size="icon" onClick={() => setIsFilterUIVisible(!isFilterUIVisible)} aria-label="フィルター設定を開閉">
-              <ListFilter className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button variant="outline" onClick={() => setIsFilterUIVisible(!isFilterUIVisible)} aria-label="フィルター設定を開閉">
+            <ListFilter className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">フィルター</span>
+          </Button>
         </CardHeader>
 
         {isFilterUIVisible && (
-          <div className="p-4 border-y">
+          <div className="p-4 pt-2"> {/* Removed border-y, adjusted top padding */}
+            { (startDate || endDate) && filteredEntries.length > 0 && (
+              <Alert variant="default" className="mb-4 bg-accent/10 border-accent/50">
+                <div className="flex items-center justify-between w-full flex-wrap gap-x-4 gap-y-1">
+                  <div className="flex items-center">
+                    <Percent className="h-4 w-4 !text-accent mr-2" />
+                    <UiAlertTitle className="text-accent font-medium">フィルター結果</UiAlertTitle>
+                  </div>
+                  <AlertDescription className="text-sm">
+                    選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
+                  </AlertDescription>
+                </div>
+              </Alert>
+            )}
             <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
@@ -190,21 +187,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
           </div>
         )}
         
-        <CardContent className="pt-6">
-          { (startDate || endDate) && filteredEntries.length > 0 && (
-             <Alert variant="default" className="mb-4 bg-accent/10 border-accent/50">
-               <div className="flex items-center justify-between w-full flex-wrap gap-x-4 gap-y-1">
-                 <div className="flex items-center">
-                   <Percent className="h-4 w-4 !text-accent mr-2" />
-                   <UiAlertTitle className="text-accent font-medium">フィルター結果</UiAlertTitle>
-                 </div>
-                 <AlertDescription className="text-sm">
-                   選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span>
-                 </AlertDescription>
-               </div>
-             </Alert>
-          )}
-
+        <CardContent className="pt-0"> {/* Adjusted padding based on filter UI visibility */}
           {filteredEntries.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center">表示するエントリーがありません。</p>
           ) : (
@@ -302,4 +285,3 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
-
