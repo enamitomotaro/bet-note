@@ -15,13 +15,13 @@ import {
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
-import { Pencil, Trash2, Edit3, ListChecks, ArrowRight, Filter as FilterIcon, ArrowUpDown, Search as SearchIcon, CalendarIcon as LucideCalendarIcon, FilterX, X as XIcon, ChevronUp, ChevronDown } from 'lucide-react';
+import { Pencil, Trash2, Edit3, ListChecks, ArrowRight, Filter as FilterIcon, ArrowUpDown, Search as SearchIcon, FilterX, X as XIcon, ChevronUp, ChevronDown, CalendarDays } from 'lucide-react';
 import { format, parseISO, isValid, startOfDay } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardFooter as UiCardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card';
-import { Dialog, DialogContent, DialogFooter as UiDialogFooter, DialogHeader, DialogTitle as UiDialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter as UiDialogFooter, DialogHeader, DialogTitle as UiDialogTitle, DialogClose } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
   AlertDialog,
@@ -40,8 +40,8 @@ import { Label } from "@/components/ui/label";
 
 interface EntriesTableProps {
   entries: BetEntry[];
-  onDeleteEntry: (id: string) => void;
-  onUpdateEntry: (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
+  onDeleteEntry?: (id: string) => void; // Made optional for dashboard view
+  onUpdateEntry?: (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void; // Made optional
   displayLimit?: number;
   viewAllLinkPath?: string;
   showFilterControls?: boolean;
@@ -125,16 +125,25 @@ export function EntriesTable({
       }
     }
 
-    if (searchQuery) {
+    if (searchQuery && showFilterControls) {
       processedEntries = processedEntries.filter(entry =>
         entry.raceName?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    if (sortConfig.key) {
+    if (sortConfig.key && showFilterControls) {
       processedEntries.sort((a, b) => {
-        const aValue = a[sortConfig.key as keyof BetEntry];
-        const bValue = b[sortConfig.key as keyof BetEntry];
+        let aValue = a[sortConfig.key as keyof BetEntry];
+        let bValue = b[sortConfig.key as keyof BetEntry];
+
+        if (sortConfig.key === 'profitLoss') {
+            aValue = a.payoutAmount - a.betAmount;
+            bValue = b.payoutAmount - b.betAmount;
+        } else if (sortConfig.key === 'roi') {
+            aValue = a.betAmount > 0 ? (a.payoutAmount / a.betAmount) * 100 : 0;
+            bValue = b.betAmount > 0 ? (b.payoutAmount / b.betAmount) * 100 : 0;
+        }
+
 
         let comparison = 0;
         if (typeof aValue === 'string' && typeof bValue === 'string') {
@@ -152,12 +161,9 @@ export function EntriesTable({
   }, [entries, startDate, endDate, searchQuery, sortConfig, clientMounted, showFilterControls]);
 
   const entriesForTable = useMemo(() => {
-    // For dashboard view, if displayLimit is set, slice the entries.
-    // showFilterControls will be false for dashboard's EntriesTable instance.
-    if (displayLimit && showFilterControls === false) { 
+    if (displayLimit && !showFilterControls) { 
       return filteredAndSortedEntries.slice(0, displayLimit);
     }
-    // For the dedicated entries page (showFilterControls === true), show all filtered/sorted entries.
     return filteredAndSortedEntries;
   }, [filteredAndSortedEntries, displayLimit, showFilterControls]);
 
@@ -168,7 +174,7 @@ export function EntriesTable({
     totalProfitLoss,
     overallRecoveryRateForFooter,
   } = useMemo(() => {
-    const sourceForTotals = filteredAndSortedEntries; // Use all filtered entries for totals
+    const sourceForTotals = filteredAndSortedEntries; 
 
     if (!clientMounted || sourceForTotals.length === 0) {
       return {
@@ -217,7 +223,9 @@ export function EntriesTable({
   }
 
   const handleUpdateEntryInDialog = (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
-    onUpdateEntry(id, updatedData);
+    if (onUpdateEntry) {
+        onUpdateEntry(id, updatedData);
+    }
     handleCloseEditDialog();
   };
 
@@ -227,7 +235,7 @@ export function EntriesTable({
   };
 
   const confirmDeleteEntry = () => {
-    if (entryToDeleteId) {
+    if (entryToDeleteId && onDeleteEntry) {
       onDeleteEntry(entryToDeleteId);
     }
     setIsDeleteDialogOpen(false);
@@ -417,7 +425,7 @@ export function EntriesTable({
                     ))}
                   </TableBody>
                   {filteredAndSortedEntries.length > 0 && ( 
-                     <TableFooter>
+                     <TableFooter className="bg-transparent">
                         <TableRow className="h-[3rem] border-t">
                           <TableCell colSpan={2} className="font-medium text-muted-foreground">合計</TableCell>
                           <TableCell className="text-right font-medium">{formatCurrency(totalBetAmount)}</TableCell>
@@ -488,25 +496,28 @@ export function EntriesTable({
         )}
       </Card>
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <UiAlertDialogTitle>本当に削除しますか？</UiAlertDialogTitle>
-            <AlertDialogDescription>
-              この操作は元に戻せません。エントリーが完全に削除されます。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>キャンセル</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteEntry}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            >
-              削除する
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {onDeleteEntry && onUpdateEntry && ( // Ensure these are only rendered if needed
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <UiAlertDialogTitle>本当に削除しますか？</UiAlertDialogTitle>
+              <AlertDialogDescription>
+                この操作は元に戻せません。エントリーが完全に削除されます。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>キャンセル</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDeleteEntry}
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              >
+                削除する
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }
+
