@@ -13,12 +13,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Edit3, ListChecks, FilterX, ListFilter, ArrowRight, CalendarDays } from 'lucide-react';
+import { Pencil, Trash2, Edit3, ListChecks, FilterX, ListFilter, ArrowRight } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercentage, calculateAverageRecoveryRate } from '@/lib/calculations';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
   AlertDialog,
@@ -26,9 +26,9 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
+  AlertDialogFooter as UiAlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict
+  AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -40,7 +40,7 @@ interface EntriesTableProps {
   onUpdateEntry: (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
   displayLimit?: number;
   viewAllLinkPath?: string;
-  showFilterControls?: boolean; // New prop
+  showFilterControls?: boolean;
 }
 
 export function EntriesTable({ 
@@ -49,7 +49,7 @@ export function EntriesTable({
   onUpdateEntry, 
   displayLimit, 
   viewAllLinkPath,
-  showFilterControls = true // Default to true to keep existing behavior on dedicated entries page
+  showFilterControls = true 
 }: EntriesTableProps) {
   const [editingEntry, setEditingEntry] = useState<BetEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -65,11 +65,11 @@ export function EntriesTable({
     setClientMounted(true);
   }, []);
 
-  const filteredEntries = useMemo(() => {
+  const internalFilteredEntries = useMemo(() => {
     if (!clientMounted) return [];
-    if (!showFilterControls) return entries; // If filter controls are hidden, use all entries
+    if (!showFilterControls) return entries; // If filter controls are hidden (dashboard), use pre-filtered entries
 
-    let tempEntries = [...entries];
+    let tempEntries = [...entries]; // For dedicated entries page, filter internally
     if (startDate) {
       tempEntries = tempEntries.filter(entry => parseISO(entry.date) >= startDate);
     }
@@ -82,18 +82,22 @@ export function EntriesTable({
   }, [entries, startDate, endDate, clientMounted, showFilterControls]);
   
   const sortedAndLimitedEntries = useMemo(() => {
-    const sorted = [...filteredEntries].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+    // Use internalFilteredEntries if showFilterControls is true (dedicated page),
+    // otherwise use the 'entries' prop (pre-filtered on dashboard)
+    const entriesToProcess = showFilterControls ? internalFilteredEntries : entries;
+    const sorted = [...entriesToProcess].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
     if (displayLimit) {
       return sorted.slice(0, displayLimit);
     }
     return sorted;
-  }, [filteredEntries, displayLimit]);
+  }, [internalFilteredEntries, entries, displayLimit, showFilterControls]);
 
   const averageRecoveryRate = useMemo(() => {
-    return calculateAverageRecoveryRate(filteredEntries);
-  }, [filteredEntries]);
+    const entriesToCalc = showFilterControls ? internalFilteredEntries : entries;
+    return calculateAverageRecoveryRate(entriesToCalc);
+  }, [internalFilteredEntries, entries, showFilterControls]);
   
-  const isFilterActive = startDate || endDate;
+  const isFilterActive = showFilterControls && (startDate || endDate);
 
   const clearFilters = () => {
     setStartDate(undefined);
@@ -131,7 +135,7 @@ export function EntriesTable({
     }
   };
 
-  const showViewAllButton = viewAllLinkPath && displayLimit && entries.length > displayLimit;
+  const showViewAllButton = viewAllLinkPath && displayLimit && (showFilterControls ? internalFilteredEntries : entries).length > displayLimit;
 
   return (
     <>
@@ -141,7 +145,7 @@ export function EntriesTable({
             <ListChecks className={cn("h-6 w-6 text-muted-foreground")} />
             エントリー履歴
           </UiCardTitle>
-          {showFilterControls ? (
+          {showFilterControls ? ( // Only show these controls on dedicated entries page
             <div className="flex items-center gap-2">
               {isFilterActive && (
                 <Button
@@ -170,12 +174,7 @@ export function EntriesTable({
                 <span className="ml-2 hidden sm:inline">フィルター</span>
               </Button>
             </div>
-          ) : (
-            <div className="text-sm text-muted-foreground flex items-center">
-              <CalendarDays className="mr-1 h-4 w-4" />
-              <span>期間: すべて</span>
-            </div>
-          )}
+          ) : null }
         </CardHeader>
         
         {showFilterControls && isFilterUIVisible && (
@@ -231,7 +230,7 @@ export function EntriesTable({
                 </Popover>
               </div>
 
-              {isFilterActive && filteredEntries.length > 0 && (
+              {isFilterActive && internalFilteredEntries.length > 0 && (
                 <div className="text-sm text-muted-foreground text-center md:text-right mt-4 md:mt-0">
                   <p>
                     選択期間の平均回収率: <strong className="text-accent">{formatPercentage(averageRecoveryRate)}</strong>
@@ -239,16 +238,11 @@ export function EntriesTable({
                 </div>
               )}
             </div>
-            { isFilterActive && (
-                <div className="mt-4 flex justify-center">
-                     {/* This clear filter button was part of the original logic, kept it inside the filter area */}
-                </div>
-            )}
           </div>
         )}
         
         <CardContent className={cn(showFilterControls && isFilterUIVisible ? 'pt-0' : 'pt-6')}>
-          {entries.length === 0 && !isFilterActive ? (
+          {(showFilterControls ? internalFilteredEntries : entries).length === 0 && !isFilterActive ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : sortedAndLimitedEntries.length === 0 && isFilterActive ? (
              <p className="text-muted-foreground py-4 text-center">選択された期間に該当するエントリーはありません。</p>

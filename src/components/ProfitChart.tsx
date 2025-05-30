@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { BetEntry, ProfitChartTimespan } from '@/lib/types';
 import { prepareProfitChartData, prepareCumulativeProfitChartData, formatCurrency } from '@/lib/calculations';
-import { TrendingUp, LineChart, CalendarDays } from 'lucide-react'; // Added CalendarDays
+import { TrendingUp, LineChart } from 'lucide-react';
 
 interface ProfitChartProps {
   entries: BetEntry[];
@@ -54,17 +54,17 @@ export function ProfitChart({ entries }: ProfitChartProps) {
     return chartType === "period" ? TrendingUp : LineChart;
   }, [chartType]);
 
-  if (!clientMounted) {
+  if (!clientMounted && entries.length > 0) { // Show loading only if there are entries to process
     return (
         <Card className="flex flex-col" data-ai-hint="graph finance">
         <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-accent" />
+            {React.createElement(chartIcon, { className: "h-6 w-6 text-accent" })}
             {chartTitle}
             </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6 h-[400px]">
-            <p>読み込み中...</p>
+        <CardContent className="pt-6 h-[400px] flex items-center justify-center">
+            <p className="text-muted-foreground">グラフを読み込み中...</p>
         </CardContent>
         </Card>
     );
@@ -92,10 +92,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
                 <TabsTrigger value="monthly" className="text-xs px-3 py-1.5">月次</TabsTrigger>
                 </TabsList>
             </Tabs>
-            <div className="text-sm text-muted-foreground flex items-center ml-0 sm:ml-2 mt-2 sm:mt-0">
-              <CalendarDays className="mr-1 h-4 w-4" />
-              <span>期間: すべて</span>
-            </div>
+            {/* Removed static "期間: すべて" text */}
           </div>
         </div>
       </CardHeader>

@@ -7,7 +7,7 @@ import { EntriesTable } from '@/components/EntriesTable';
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { calculateStats } from '@/lib/calculations';
 import { useEffect, useState, useMemo } from 'react';
-import type { DashboardStats } from '@/lib/types';
+import type { DashboardStats, BetEntry } from '@/lib/types';
 import { Button } from "@/components/ui/button";
 import { Settings, ArrowUp, ArrowDown, ListFilter, FilterX, CalendarDays } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
@@ -15,12 +15,12 @@ import useLocalStorage from '@/hooks/useLocalStorage';
 import type { ComponentType } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 
 type CardId = 'stats' | 'chart' | 'table';
 
-const CARD_ORDER_KEY = 'dashboardCardOrder_v1';
+const CARD_ORDER_KEY = 'dashboardCardOrder_v2'; // Changed key to reset for users if structure changes significantly
 
 const cardDisplayNames: Record<CardId, string> = {
   stats: "統計概要",
@@ -29,13 +29,12 @@ const cardDisplayNames: Record<CardId, string> = {
 };
 
 interface CardComponentProps {
-  stats?: DashboardStats;
-  entries?: any[];
+  entries: BetEntry[]; // Changed from stats to entries for DashboardCards
   onDeleteEntry?: (id: string) => void;
   onUpdateEntry?: (id: string, data: any) => void;
   displayLimit?: number;
   viewAllLinkPath?: string;
-  showFilterControls?: boolean; // For EntriesTable
+  showFilterControls?: boolean; 
 }
 
 const cardComponentsMap: Record<CardId, ComponentType<CardComponentProps>> = {
@@ -46,8 +45,7 @@ const cardComponentsMap: Record<CardId, ComponentType<CardComponentProps>> = {
 
 
 export default function DashboardPage() {
-  const { entries, deleteEntry, updateEntry, isLoaded } = useBetEntries();
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats>(calculateStats([]));
+  const { entries: allEntries, deleteEntry, updateEntry, isLoaded } = useBetEntries();
   const [clientMounted, setClientMounted] = useState(false);
 
   const [cardOrder, setCardOrder] = useLocalStorage<CardId[]>(
@@ -56,15 +54,26 @@ export default function DashboardPage() {
   );
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+
   useEffect(() => {
     setClientMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (isLoaded) {
-      setDashboardStats(calculateStats(entries));
+  const filteredEntries = useMemo(() => {
+    if (!isLoaded || !clientMounted) return [];
+    let tempEntries = [...allEntries];
+    if (startDate) {
+      tempEntries = tempEntries.filter(entry => parseISO(entry.date) >= startDate);
     }
-  }, [entries, isLoaded]);
+    if (endDate) {
+      const endOfDayEndDate = new Date(endDate);
+      endOfDayEndDate.setHours(23, 59, 59, 999);
+      tempEntries = tempEntries.filter(entry => parseISO(entry.date) <= endOfDayEndDate);
+    }
+    return tempEntries;
+  }, [allEntries, startDate, endDate, isLoaded, clientMounted]);
 
   const moveCard = (index: number, direction: 'up' | 'down') => {
     const newOrder = [...cardOrder];
@@ -76,6 +85,14 @@ export default function DashboardPage() {
     setCardOrder(newOrder);
   };
 
+  const clearFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
+
+  const isFilterActive = startDate || endDate;
+
+
   if (!isLoaded || !clientMounted) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -85,17 +102,17 @@ export default function DashboardPage() {
   }
   
   const componentsToRender = {
-    stats: { component: DashboardCards, props: { stats: dashboardStats } },
-    chart: { component: ProfitChart, props: { entries } },
+    stats: { component: DashboardCards, props: { entries: filteredEntries } },
+    chart: { component: ProfitChart, props: { entries: filteredEntries } },
     table: { 
       component: EntriesTable, 
       props: { 
-        entries, 
+        entries: filteredEntries, 
         onDeleteEntry: deleteEntry, 
         onUpdateEntry: updateEntry,
-        displayLimit: 6,
+        displayLimit: 5, // Changed from 6 to 5
         viewAllLinkPath: "/dashboard/entries",
-        showFilterControls: false // DashboardではEntriesTableの内部フィルターUIを非表示
+        showFilterControls: false 
       } 
     },
   };
@@ -108,14 +125,12 @@ export default function DashboardPage() {
           size="icon" 
           onClick={() => setIsSettingsDialogOpen(true)}
           data-ai-hint="layout settings gears"
-          aria-label="レイアウト設定"
+          aria-label="レイアウト・フィルター設定"
         >
           <Settings className="h-5 w-5" />
         </Button>
       </div>
       
-      {/* Global filter removed from here */}
-
       <div className="space-y-8">
         {cardOrder.map((cardId) => {
           const CardComponent = componentsToRender[cardId].component as ComponentType<any>;
@@ -129,36 +144,105 @@ export default function DashboardPage() {
       </div>
 
       <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-card">
+        <DialogContent className="sm:max-w-lg bg-card"> {/* Increased max-width slightly for filter controls */}
           <DialogHeader>
-            <DialogTitle>レイアウト設定</DialogTitle>
+            <DialogTitle>レイアウト・フィルター設定</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 py-4">
-            {cardOrder.map((cardId, index) => (
-              <div key={cardId} className="flex items-center justify-between p-3 border rounded-md bg-background">
-                <span className="font-medium">{cardDisplayNames[cardId]}</span>
-                <div className="space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => moveCard(index, 'up')}
-                    disabled={index === 0}
-                    aria-label={`${cardDisplayNames[cardId]}を上に移動`}
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => moveCard(index, 'down')}
-                    disabled={index === cardOrder.length - 1}
-                    aria-label={`${cardDisplayNames[cardId]}を下に移動`}
-                  >
-                    <ArrowDown className="h-4 w-4" />
-                  </Button>
-                </div>
+          
+          <div className="py-4 space-y-6">
+            <div>
+              <h3 className="text-lg font-medium mb-3">期間フィルター</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarDays className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "PPP") : <span>開始日</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                      disabled={(date) => endDate ? date > endDate : false}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                       className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarDays className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "PPP") : <span>終了日</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                      disabled={(date) => startDate ? date < startDate : false}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-            ))}
+              {isFilterActive && (
+                <Button
+                  variant="ghost"
+                  onClick={clearFilters}
+                  className="w-full text-accent hover:bg-accent/10"
+                  data-ai-hint="clear filter cross"
+                >
+                  <FilterX className="mr-2 h-4 w-4" />
+                  フィルターを解除
+                </Button>
+              )}
+            </div>
+
+            <div>
+                <h3 className="text-lg font-medium mb-3 border-t pt-4">カードの表示順</h3>
+                <div className="space-y-2">
+                {cardOrder.map((cardId, index) => (
+                <div key={cardId} className="flex items-center justify-between p-3 border rounded-md bg-background">
+                    <span className="font-medium">{cardDisplayNames[cardId]}</span>
+                    <div className="space-x-2">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveCard(index, 'up')}
+                        disabled={index === 0}
+                        aria-label={`${cardDisplayNames[cardId]}を上に移動`}
+                    >
+                        <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => moveCard(index, 'down')}
+                        disabled={index === cardOrder.length - 1}
+                        aria-label={`${cardDisplayNames[cardId]}を下に移動`}
+                    >
+                        <ArrowDown className="h-4 w-4" />
+                    </Button>
+                    </div>
+                </div>
+                ))}
+              </div>
+            </div>
           </div>
            <DialogClose asChild>
             <Button type="button" variant="outline" className="mt-4 w-full">

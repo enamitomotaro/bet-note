@@ -1,13 +1,14 @@
 
 "use client";
 
-import type { DashboardStats } from '@/lib/types';
+import type { BetEntry, DashboardStats } from '@/lib/types'; // Import BetEntry
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingUp, Percent, Target, CheckCircle, CornerRightUp, Award, BarChart3, CalendarDays } from 'lucide-react';
-import { formatCurrency, formatPercentage } from '@/lib/calculations';
+import { DollarSign, TrendingUp, Percent, Target, CheckCircle, CornerRightUp, Award, BarChart3 } from 'lucide-react';
+import { formatCurrency, formatPercentage, calculateStats } from '@/lib/calculations'; // Import calculateStats
+import { useMemo } from 'react';
 
 interface DashboardCardsProps {
-  stats: DashboardStats;
+  entries: BetEntry[]; // Changed from stats: DashboardStats to entries: BetEntry[]
 }
 
 const StatItem = ({ title, value, icon: Icon, unit, dataAiHint }: { title: string; value: string | number; icon: React.ElementType; unit?: string; dataAiHint?: string }) => (
@@ -23,7 +24,10 @@ const StatItem = ({ title, value, icon: Icon, unit, dataAiHint }: { title: strin
   </div>
 );
 
-export function DashboardCards({ stats }: DashboardCardsProps) {
+export function DashboardCards({ entries }: DashboardCardsProps) {
+  // Calculate stats based on the provided (potentially filtered) entries
+  const stats = useMemo(() => calculateStats(entries), [entries]);
+
   return (
     <Card data-ai-hint="summary statistics overview">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -31,10 +35,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
           <BarChart3 className="h-6 w-6 text-accent" />
           統計概要
         </CardTitle>
-        <div className="text-sm text-muted-foreground flex items-center">
-          <CalendarDays className="mr-1 h-4 w-4" />
-          <span>期間: すべて</span>
-        </div>
+        {/* Removed static "期間: すべて" text */}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
