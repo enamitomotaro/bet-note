@@ -29,7 +29,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -165,7 +164,6 @@ export function EntriesTable({
     totalProfitLoss,
     overallRecoveryRateForFooter,
   } = useMemo(() => {
-    // Calculate totals based on all filtered and sorted entries, not just `entriesForTable`
     const sourceForTotals = filteredAndSortedEntries;
 
     if (!clientMounted || sourceForTotals.length === 0) {
@@ -247,7 +245,7 @@ export function EntriesTable({
             <Button 
               variant="ghost" 
               size="icon" 
-              className="text-muted-foreground hover:text-accent hover:bg-accent/20" 
+              className="text-muted-foreground hover:bg-accent/20 hover:text-accent" 
               aria-label="検索"
             >
               <SearchIcon className="h-4 w-4" />
@@ -278,7 +276,7 @@ export function EntriesTable({
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="text-muted-foreground hover:text-accent hover:bg-accent/20"
+                  className="text-muted-foreground hover:bg-accent/20 hover:text-accent"
                   aria-label="並べ替え"
                 >
                 <ArrowUpDown className="h-4 w-4" />
@@ -311,7 +309,7 @@ export function EntriesTable({
               variant="ghost"
               size="icon"
               className={cn(
-                "hover:text-accent hover:bg-accent/20", 
+                "hover:bg-accent/20 hover:text-accent", 
                 isDateFilterActive ? "text-accent" : "text-muted-foreground"
               )}
               aria-label="期間フィルター"
@@ -361,7 +359,7 @@ export function EntriesTable({
           {filterControlElements}
         </CardHeader>
 
-        <CardContent className={cn("pt-6")}> {/* Removed conditional padding based on filter */}
+        <CardContent className={cn("pt-6")}>
           {(entriesForTable).length === 0 && !isDateFilterActive && showFilterControls && entries.length === 0 ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : entriesForTable.length === 0 && (isDateFilterActive || searchQuery) && showFilterControls ? (
@@ -370,7 +368,7 @@ export function EntriesTable({
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : (
             <ScrollArea 
-                className={cn((displayLimit && entriesForTable.length >= displayLimit && showFilterControls === false) ? 'max-h-[calc(5*3.5rem+2.25rem+3rem)]' : '')} // Adjusted height for footer
+                className={cn((displayLimit && entriesForTable.length >= displayLimit && showFilterControls === false) ? 'max-h-[calc(5*3.5rem+2.25rem+3rem)]' : '')} 
             >
               <div className="overflow-x-auto">
                 <Table>
@@ -414,10 +412,10 @@ export function EntriesTable({
                       </TableRow>
                     ))}
                   </TableBody>
-                  {filteredAndSortedEntries.length > 0 && ( // Show footer if there are any filtered entries
+                  {filteredAndSortedEntries.length > 0 && ( 
                      <TableFooter>
-                        <TableRow className="h-[3rem]">
-                          <TableCell colSpan={2} className="font-medium text-left">合計</TableCell>
+                        <TableRow className="h-[3rem] border-t">
+                          <TableCell colSpan={2} className="font-medium text-muted-foreground">合計</TableCell>
                           <TableCell className="text-right font-medium">{formatCurrency(totalBetAmount)}</TableCell>
                           <TableCell className="text-right font-medium">{formatCurrency(totalPayoutAmount)}</TableCell>
                           <TableCell className={`text-right font-medium ${totalProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -508,4 +506,3 @@ export function EntriesTable({
     </>
   );
 }
-
