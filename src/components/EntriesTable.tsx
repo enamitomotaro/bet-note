@@ -21,7 +21,7 @@ import { ja } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardFooter as UiCardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card';
-import { Dialog, DialogContent, DialogFooter as UiDialogFooter, DialogHeader, DialogTitle as UiDialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle as UiDialogTitle, DialogClose } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
   AlertDialog,
@@ -40,8 +40,8 @@ import { Label } from "@/components/ui/label";
 
 interface EntriesTableProps {
   entries: BetEntry[];
-  onDeleteEntry?: (id: string) => void; // Made optional for dashboard view
-  onUpdateEntry?: (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void; // Made optional
+  onDeleteEntry?: (id: string) => void;
+  onUpdateEntry?: (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
   displayLimit?: number;
   viewAllLinkPath?: string;
   showFilterControls?: boolean;
@@ -123,38 +123,39 @@ export function EntriesTable({
           return entryDate <= filterEnd;
         });
       }
-    }
+    
 
-    if (searchQuery && showFilterControls) {
-      processedEntries = processedEntries.filter(entry =>
-        entry.raceName?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
+      if (searchQuery) {
+        processedEntries = processedEntries.filter(entry =>
+          entry.raceName?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
 
-    if (sortConfig.key && showFilterControls) {
-      processedEntries.sort((a, b) => {
-        let aValue = a[sortConfig.key as keyof BetEntry];
-        let bValue = b[sortConfig.key as keyof BetEntry];
+      if (sortConfig.key) {
+        processedEntries.sort((a, b) => {
+          let aValue = a[sortConfig.key as keyof BetEntry];
+          let bValue = b[sortConfig.key as keyof BetEntry];
 
-        if (sortConfig.key === 'profitLoss') {
-            aValue = a.payoutAmount - a.betAmount;
-            bValue = b.payoutAmount - b.betAmount;
-        } else if (sortConfig.key === 'roi') {
-            aValue = a.betAmount > 0 ? (a.payoutAmount / a.betAmount) * 100 : 0;
-            bValue = b.betAmount > 0 ? (b.payoutAmount / b.betAmount) * 100 : 0;
-        }
+          if (sortConfig.key === 'profitLoss') {
+              aValue = a.payoutAmount - a.betAmount;
+              bValue = b.payoutAmount - b.betAmount;
+          } else if (sortConfig.key === 'roi') {
+              aValue = a.betAmount > 0 ? (a.payoutAmount / a.betAmount) * 100 : 0;
+              bValue = b.betAmount > 0 ? (b.payoutAmount / b.betAmount) * 100 : 0;
+          }
 
 
-        let comparison = 0;
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          comparison = aValue.localeCompare(bValue);
-        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-          comparison = aValue - bValue;
-        } else if (sortConfig.key === 'date') {
-           comparison = parseISO(a.date).getTime() - parseISO(b.date).getTime();
-        }
-        return sortConfig.direction === 'asc' ? comparison : -comparison;
-      });
+          let comparison = 0;
+          if (typeof aValue === 'string' && typeof bValue === 'string') {
+            comparison = aValue.localeCompare(bValue);
+          } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+            comparison = aValue - bValue;
+          } else if (sortConfig.key === 'date') {
+             comparison = parseISO(a.date).getTime() - parseISO(b.date).getTime();
+          }
+          return sortConfig.direction === 'asc' ? comparison : -comparison;
+        });
+      }
     }
     
     return processedEntries;
@@ -425,8 +426,8 @@ export function EntriesTable({
                     ))}
                   </TableBody>
                   {filteredAndSortedEntries.length > 0 && ( 
-                     <TableFooter className="bg-transparent">
-                        <TableRow className="h-[3rem] border-t">
+                     <TableFooter className="bg-transparent border-t-0">
+                        <TableRow className="h-[3rem]">
                           <TableCell colSpan={2} className="font-medium text-muted-foreground">合計</TableCell>
                           <TableCell className="text-right font-medium">{formatCurrency(totalBetAmount)}</TableCell>
                           <TableCell className="text-right font-medium">{formatCurrency(totalPayoutAmount)}</TableCell>
