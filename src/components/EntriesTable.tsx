@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect, type ReactNode } from 'react';
@@ -13,8 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Edit3, ListChecks, ArrowRight, Filter, ArrowUpDown, Search, CalendarIcon as LucideCalendarIcon, FilterX } from 'lucide-react';
-import { format, parseISO, isValid } from 'date-fns';
+import { Input } from "@/components/ui/input";
+import { Pencil, Trash2, Edit3, ListChecks, ArrowRight, Filter as FilterIcon, ArrowUpDown, Search as SearchIcon, CalendarIcon as LucideCalendarIcon, FilterX, X as XIcon, ChevronUp, ChevronDown } from 'lucide-react';
+import { format, parseISO, isValid, startOfDay } from 'date-fns';
+import { ja } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercentage, calculateAverageRecoveryRate } from '@/lib/calculations';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card';
@@ -33,7 +34,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import { Label } from "@/components/ui/label"; // Added for sort popover
 
 interface EntriesTableProps {
   entries: BetEntry[];
@@ -43,6 +44,24 @@ interface EntriesTableProps {
   viewAllLinkPath?: string;
   showFilterControls?: boolean;
 }
+
+type SortableColumn = keyof BetEntry | 'profitLoss' | 'roi'; // Make sure these match BetEntry fields used for sorting
+type SortDirection = 'asc' | 'desc';
+
+interface SortConfig {
+  key: SortableColumn;
+  direction: SortDirection;
+}
+
+const sortableColumns: { key: SortableColumn, label: string }[] = [
+  { key: 'date', label: '日付' },
+  { key: 'raceName', label: 'レース名' },
+  { key: 'betAmount', label: '掛け金' },
+  { key: 'payoutAmount', label: '払戻金' },
+  { key: 'profitLoss', label: '損益' },
+  { key: 'roi', label: '回収率' },
+];
+
 
 export function EntriesTable({
   entries,
@@ -57,49 +76,109 @@ export function EntriesTable({
   const [entryToDeleteId, setEntryToDeleteId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  // States for filtering, sorting, searching
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [clientMounted, setClientMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'desc' });
+  
+  const [isDateFilterPopoverOpen, setIsDateFilterPopoverOpen] = useState(false);
+  const [isSortPopoverOpen, setIsSortPopoverOpen] = useState(false);
+  const [isSearchPopoverOpen, setIsSearchPopoverOpen] = useState(false);
 
+
+  const [clientMounted, setClientMounted] = useState(false);
   useEffect(() => {
     setClientMounted(true);
   }, []);
 
-  const internalFilteredEntries = useMemo(() => {
+  const handleSort = (key: SortableColumn) => {
+    setSortConfig(prevConfig => {
+      if (prevConfig.key === key && prevConfig.direction === 'asc') {
+        return { key, direction: 'desc' };
+      }
+      return { key, direction: 'asc' };
+    });
+    setIsSortPopoverOpen(false); // Close popover after sorting
+  };
+  
+  const filteredAndSortedEntries = useMemo(() => {
     if (!clientMounted) return [];
-    if (!showFilterControls) return entries;
 
-    let tempEntries = [...entries];
-    if (startDate) {
-      const filterStart = startOfDay(parseISO(format(startDate, "yyyy-MM-dd")));
-      tempEntries = tempEntries.filter(entry => startOfDay(parseISO(entry.date)) >= filterStart);
-    }
-    if (endDate) {
-      const filterEnd = startOfDay(parseISO(format(endDate, "yyyy-MM-dd")));
-      tempEntries = tempEntries.filter(entry => startOfDay(parseISO(entry.date)) <= filterEnd);
-    }
-    return tempEntries;
-  }, [entries, startDate, endDate, clientMounted, showFilterControls]);
+    let processedEntries = [...entries];
 
-  const sortedAndLimitedEntries = useMemo(() => {
-    const entriesToProcess = internalFilteredEntries;
-    const sorted = [...entriesToProcess].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+    // 1. Date Filtering (only if showFilterControls is true)
+    if (showFilterControls) {
+      if (startDate) {
+        const filterStart = startOfDay(startDate);
+        processedEntries = processedEntries.filter(entry => {
+          const entryDate = startOfDay(parseISO(entry.date));
+          return entryDate >= filterStart;
+        });
+      }
+      if (endDate) {
+        const filterEnd = startOfDay(endDate);
+        processedEntries = processedEntries.filter(entry => {
+          const entryDate = startOfDay(parseISO(entry.date));
+          return entryDate <= filterEnd;
+        });
+      }
+    }
+
+    // 2. Search Filtering
+    if (searchQuery) {
+      processedEntries = processedEntries.filter(entry =>
+        entry.raceName?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // 3. Sorting
+    if (sortConfig.key) {
+      processedEntries.sort((a, b) => {
+        const aValue = a[sortConfig.key as keyof BetEntry];
+        const bValue = b[sortConfig.key as keyof BetEntry];
+
+        let comparison = 0;
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          comparison = aValue.localeCompare(bValue);
+        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+          comparison = aValue - bValue;
+        } else if (sortConfig.key === 'date') {
+           comparison = parseISO(a.date).getTime() - parseISO(b.date).getTime();
+        }
+        // Add more type-specific comparisons if needed, e.g., for profitLoss or roi if they are not direct BetEntry keys
+
+        return sortConfig.direction === 'asc' ? comparison : -comparison;
+      });
+    }
+    
+    return processedEntries;
+  }, [entries, startDate, endDate, searchQuery, sortConfig, clientMounted, showFilterControls]);
+
+  const entriesForTable = useMemo(() => {
     if (displayLimit) {
-      return sorted.slice(0, displayLimit);
+      return filteredAndSortedEntries.slice(0, displayLimit);
     }
-    return sorted;
-  }, [internalFilteredEntries, displayLimit]);
+    return filteredAndSortedEntries;
+  }, [filteredAndSortedEntries, displayLimit]);
+
 
   const averageRecoveryRate = useMemo(() => {
-    return calculateAverageRecoveryRate(internalFilteredEntries);
-  }, [internalFilteredEntries]);
+    return calculateAverageRecoveryRate(filteredAndSortedEntries);
+  }, [filteredAndSortedEntries]);
 
-  const isFilterActive = startDate || endDate;
+  const isDateFilterActive = startDate || endDate;
 
-  const clearFilters = () => {
+  const clearDateFilters = () => {
     setStartDate(undefined);
     setEndDate(undefined);
+    setIsDateFilterPopoverOpen(false);
   };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setIsSearchPopoverOpen(false);
+  }
 
   const handleEdit = (entry: BetEntry) => {
     setEditingEntry(entry);
@@ -132,101 +211,106 @@ export function EntriesTable({
     }
   };
 
-  const showViewAllButton = viewAllLinkPath && displayLimit && internalFilteredEntries.length > displayLimit;
+  const showViewAllButton = viewAllLinkPath && displayLimit && filteredAndSortedEntries.length > displayLimit;
 
   let filterControlElements: ReactNode = null;
   if (showFilterControls) {
     filterControlElements = (
       <div className="flex items-center gap-1 ml-auto">
-        {/* Filter Popover */}
-        <Popover>
+        <Popover open={isSearchPopoverOpen} onOpenChange={setIsSearchPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-accent" aria-label="検索">
+              <SearchIcon className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-4 space-y-2 bg-card shadow-xl rounded-lg border" align="end">
+            <Label htmlFor="search-race" className="text-sm font-medium">レース名で検索</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="search-race"
+                type="text"
+                placeholder="レース名を入力..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-grow"
+              />
+              {searchQuery && (
+                <Button variant="ghost" size="icon" onClick={clearSearch} aria-label="検索をクリア">
+                  <XIcon className="h-4 w-4 text-muted-foreground"/>
+                </Button>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        <Popover open={isSortPopoverOpen} onOpenChange={setIsSortPopoverOpen}>
+            <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-accent" aria-label="並べ替え">
+                <ArrowUpDown className="h-4 w-4" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-2 bg-card shadow-xl rounded-lg border" align="end">
+                <p className="p-2 text-sm font-medium text-card-foreground">並べ替え</p>
+                {sortableColumns.map(col => (
+                <Button
+                    key={col.key}
+                    variant="ghost"
+                    onClick={() => handleSort(col.key)}
+                    className={cn(
+                    "w-full justify-start text-sm",
+                    sortConfig.key === col.key ? "bg-accent/10 text-accent" : ""
+                    )}
+                >
+                    {col.label}
+                    {sortConfig.key === col.key && (
+                    sortConfig.direction === 'asc' ? <ChevronUp className="ml-auto h-4 w-4" /> : <ChevronDown className="ml-auto h-4 w-4" />
+                    )}
+                </Button>
+                ))}
+            </PopoverContent>
+        </Popover>
+
+        <Popover open={isDateFilterPopoverOpen} onOpenChange={setIsDateFilterPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className={cn("hover:bg-accent/10", isFilterActive ? "text-accent" : "text-muted-foreground")}
-              aria-label="フィルター"
+              className={cn("hover:text-accent", isDateFilterActive ? "text-accent" : "text-muted-foreground")}
+              aria-label="期間フィルター"
             >
-              <Filter className="h-4 w-4" />
+              <FilterIcon className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-4 space-y-4 bg-card shadow-xl rounded-lg border" align="end">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-card-foreground">期間で絞り込み</p>
-              <div className="grid grid-cols-1 gap-2">
-                 <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
-                      )}
-                    >
-                      <LucideCalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : <span>開始日</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      initialFocus
-                      disabled={(date) => endDate ? date > endDate : false}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                       className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !endDate && "text-muted-foreground"
-                      )}
-                    >
-                      <LucideCalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : <span>終了日</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      initialFocus
-                      disabled={(date) => startDate ? date < startDate : false}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+          <PopoverContent className="w-auto p-0 bg-card shadow-xl rounded-lg border" align="end">
+            <div className="p-4 space-y-3">
+                <p className="text-sm font-medium text-card-foreground mb-1">期間で絞り込み</p>
+                <Calendar
+                    mode="range"
+                    locale={ja}
+                    selected={{ from: startDate, to: endDate }}
+                    onSelect={(range) => {
+                        setStartDate(range?.from);
+                        setEndDate(range?.to);
+                    }}
+                    numberOfMonths={1}
+                />
+                {isDateFilterActive && (
+                <Button
+                    variant="ghost"
+                    onClick={clearDateFilters}
+                    className="w-full text-accent hover:bg-accent/10 mt-2"
+                >
+                    <FilterX className="mr-2 h-4 w-4" />
+                    フィルターを解除
+                </Button>
+                )}
             </div>
-            {isFilterActive && (
-              <Button
-                variant="ghost"
-                onClick={clearFilters}
-                className="w-full text-accent hover:bg-accent/10"
-              >
-                <FilterX className="mr-2 h-4 w-4" />
-                フィルターを解除
-              </Button>
-            )}
           </PopoverContent>
         </Popover>
-
-        {/* Sort Button (Placeholder) */}
-        <Button variant="ghost" size="icon" disabled className="cursor-not-allowed opacity-50 text-muted-foreground" aria-label="並べ替え">
-          <ArrowUpDown className="h-4 w-4" />
-        </Button>
-
-        {/* Search Button (Placeholder) */}
-        <Button variant="ghost" size="icon" disabled className="cursor-not-allowed opacity-50 text-muted-foreground" aria-label="検索">
-          <Search className="h-4 w-4" />
-        </Button>
       </div>
     );
   }
+
 
   return (
     <>
@@ -239,35 +323,43 @@ export function EntriesTable({
           {filterControlElements}
         </CardHeader>
 
-        {showFilterControls && isFilterActive && internalFilteredEntries.length > 0 && (
+        {showFilterControls && isDateFilterActive && filteredAndSortedEntries.length > 0 && (
            <div className="px-6 py-3 border-b text-sm text-muted-foreground">
             選択期間の平均回収率: <strong className="text-accent">{formatPercentage(averageRecoveryRate)}</strong>
           </div>
         )}
 
-        <CardContent className={cn("pt-6", (showFilterControls && isFilterActive && internalFilteredEntries.length > 0) ? 'pt-3' : 'pt-6', displayLimit ? 'max-h-[24rem] overflow-y-auto' : '')}>
-          {(internalFilteredEntries).length === 0 && !isFilterActive && showFilterControls ? (
+        <CardContent className={cn("pt-6", (showFilterControls && isDateFilterActive && filteredAndSortedEntries.length > 0) ? 'pt-3' : 'pt-6')}>
+          {(entriesForTable).length === 0 && !isDateFilterActive && showFilterControls && entries.length === 0 ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
-          ) : sortedAndLimitedEntries.length === 0 && isFilterActive && showFilterControls ? (
-             <p className="text-muted-foreground py-4 text-center">選択された期間に該当するエントリーはありません。</p>
-          ) : sortedAndLimitedEntries.length === 0 && !showFilterControls && entries.length === 0 ? (
+          ) : entriesForTable.length === 0 && (isDateFilterActive || searchQuery) && showFilterControls ? (
+             <p className="text-muted-foreground py-4 text-center">条件に該当するエントリーはありません。</p>
+          ) : entriesForTable.length === 0 && !showFilterControls && entries.length === 0 ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : (
-            <ScrollArea className={cn(displayLimit && sortedAndLimitedEntries.length > displayLimit ? `h-[calc(6*2.5rem+1rem)]` : '')}> {/* Adjusted height for ~6 items */}
+            <ScrollArea className={cn(displayLimit && entriesForTable.length >= displayLimit ? `h-[calc(6*2.5rem+1rem)]` : '')}>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>日付</TableHead>
-                      <TableHead>レース名</TableHead>
-                      <TableHead className="text-right">掛け金</TableHead>
-                      <TableHead className="text-right">払戻金</TableHead>
-                      <TableHead className="text-right">損益</TableHead>
-                      <TableHead className="text-right">回収率</TableHead>
+                      {sortableColumns.map(col => (
+                        <TableHead 
+                          key={col.key} 
+                          className={cn("cursor-pointer hover:bg-muted/50", col.key === 'betAmount' || col.key === 'payoutAmount' || col.key === 'profitLoss' || col.key === 'roi' ? 'text-right' : '')}
+                          onClick={() => showFilterControls && handleSort(col.key)} // Only allow sort on entries page
+                        >
+                          <div className={cn("flex items-center", col.key === 'betAmount' || col.key === 'payoutAmount' || col.key === 'profitLoss' || col.key === 'roi' ? 'justify-end' : '')}>
+                            {col.label}
+                            {showFilterControls && sortConfig.key === col.key && (
+                              sortConfig.direction === 'asc' ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />
+                            )}
+                          </div>
+                        </TableHead>
+                      ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedAndLimitedEntries.map((entry) => (
+                    {entriesForTable.map((entry) => (
                       <TableRow
                         key={entry.id}
                         onClick={() => handleEdit(entry)}
@@ -365,3 +457,4 @@ export function EntriesTable({
     </>
   );
 }
+
