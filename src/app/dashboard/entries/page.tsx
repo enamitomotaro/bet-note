@@ -1,7 +1,6 @@
 
 "use client";
 
-import { EntryForm } from '@/components/EntryForm';
 import { EntriesTable } from '@/components/EntriesTable';
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { useEffect, useState } from 'react';
@@ -24,7 +23,7 @@ export default function EntriesPage() {
 
   return (
     <div className="space-y-8">
-      <EntryForm onAddEntry={addEntry} />
+      {/* EntryForm component removed from here as it's now in a global dialog */}
       <EntriesTable entries={entries} onDeleteEntry={deleteEntry} onUpdateEntry={updateEntry} />
     </div>
   );

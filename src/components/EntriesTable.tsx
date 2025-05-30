@@ -19,7 +19,7 @@ import { format, parseISO, isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { calculateAverageRecoveryRate, formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle, DialogClose } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
   AlertDialog,
@@ -27,9 +27,9 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter,
+  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle,
+  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict
 } from "@/components/ui/alert-dialog";
 
 interface EntriesTableProps {
@@ -73,6 +73,11 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
   const clearFilters = () => {
     setStartDate(undefined);
     setEndDate(undefined);
+  };
+  
+  const handleClearFiltersClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); 
+    clearFilters();
   };
 
   const handleEdit = (entry: BetEntry) => {
@@ -136,7 +141,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
             {isFilterActive && (
               <Button 
                 variant="ghost" 
-                onClick={clearFilters} 
+                onClick={handleClearFiltersClick} 
                 className="text-accent hover:bg-accent hover:text-accent-foreground"
                 aria-label="フィルターを解除"
               >
@@ -150,7 +155,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               aria-label="フィルター設定を開閉"
               className={cn(
                 "transition-colors",
-                isFilterActive && "border-accent text-accent hover:text-accent-foreground" 
+                isFilterActive && "border-accent text-accent hover:text-accent-foreground hover:bg-accent" 
               )}
             >
               <ListFilter className="h-4 w-4 md:mr-2" />
@@ -188,7 +193,6 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 </Popover>
               </div>
 
-              {/* Average Recovery Rate (Right, conditional) */}
               {isFilterActive && filteredEntries.length > 0 && (
                 <div className="mt-4 md:mt-0 text-sm text-accent font-medium flex items-center justify-center md:justify-start gap-2">
                     <Percent className="h-4 w-4" />
@@ -258,6 +262,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 initialData={editingEntry}
                 onUpdateEntry={handleUpdateEntryInDialog}
                 onClose={handleCloseEditDialog}
+                isInDialog={true}
               />
               <DialogFooter className="mt-6 pt-4 border-t flex items-center justify-between">
                 <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)} className="min-w-[100px]">
@@ -296,5 +301,3 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
-
-    

@@ -2,10 +2,17 @@
 "use client";
 
 import { AppHeader } from '@/components/AppHeader';
-// Removed usePathname and useRouter as they are now primarily used within AppHeader
 import type { LucideIcon } from 'lucide-react';
-import { Home, ListPlus, Brain } from 'lucide-react';
-// Removed Tabs, TabsList, TabsTrigger imports
+import { Home, ListPlus, Brain, PlusCircle, Edit3 } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect } from 'react';
+import { useBetEntries } from '@/hooks/useBetEntries';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { EntryForm } from '@/components/EntryForm';
+import { Button } from '@/components/ui/button';
+import type { BetEntry } from '@/lib/types';
 
 export const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard', label: 'ダッシュボード', icon: Home },
@@ -20,28 +27,76 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const pathname = usePathname(); // No longer needed here
-  // pageTitle calculation is no longer needed here as AppHeader will not display it
-  // const currentNavItem = navItems.find(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
-  // const pageTitle = currentNavItem ? currentNavItem.label : APP_NAME;
+  const pathname = usePathname();
+  const router = useRouter();
+  const [clientMounted, setClientMounted] = useState(false);
 
-  // handleTabChange is no longer needed
+  const { addEntry } = useBetEntries();
+  const [isAddEntryDialogOpen, setIsAddEntryDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setClientMounted(true);
+  }, []);
+
+  const handleTabChange = (value: string) => {
+    router.push(value);
+  };
+
+  const currentNavItem = navItems.find(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
+  const pageTitle = currentNavItem ? currentNavItem.label : APP_NAME;
+
+  const handleOpenAddEntryDialog = () => {
+    setIsAddEntryDialogOpen(true);
+  };
+
+  const handleAddEntrySubmit = (entryData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
+    addEntry(entryData);
+    setIsAddEntryDialogOpen(false);
+    // Reset form if needed, EntryForm handles its own reset on successful add
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Pass navItems to AppHeader; pageTitle is no longer passed */}
-      <AppHeader appName={APP_NAME} navItems={navItems} />
-      <div className="container mx-auto px-4 md:px-8 py-6">
-        {/* Tabs navigation removed from here */}
-        <main className="flex-grow space-y-8">
-          {children}
-        </main>
-      </div>
+      <AppHeader 
+        appName={APP_NAME} 
+        navItems={navItems} 
+        onOpenAddEntryDialog={handleOpenAddEntryDialog} 
+      />
+      
+      <main className="flex-grow space-y-8 container mx-auto px-4 md:px-8 py-6">
+        {children}
+      </main>
       <footer className="border-t py-4 mt-auto">
         <div className="container mx-auto px-4 md:px-8 text-center text-sm text-muted-foreground">
           © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
         </div>
       </footer>
+
+      <Dialog open={isAddEntryDialogOpen} onOpenChange={setIsAddEntryDialogOpen}>
+        <DialogContent className="bg-card sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PlusCircle className="h-5 w-5 text-accent"/>
+              新しいエントリー記録
+            </DialogTitle>
+          </DialogHeader>
+          <EntryForm
+            id="add-entry-form-in-dialog"
+            onAddEntry={handleAddEntrySubmit}
+            onClose={() => setIsAddEntryDialogOpen(false)}
+            isInDialog={true} 
+          />
+          <DialogFooter className="mt-6 pt-4 border-t flex items-center justify-end gap-x-2">
+            <DialogClose asChild>
+              <Button type="button" variant="outline">キャンセル</Button>
+            </DialogClose>
+            <Button type="submit" form="add-entry-form-in-dialog" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              記録を追加
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

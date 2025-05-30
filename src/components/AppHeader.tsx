@@ -1,7 +1,7 @@
 
 "use client";
 import Link from 'next/link';
-import { Ticket, Menu } from 'lucide-react';
+import { Ticket, Menu, PlusCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { LucideIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -12,6 +12,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 interface NavItem {
@@ -23,15 +24,15 @@ interface NavItem {
 interface AppHeaderProps {
   appName: string;
   navItems: NavItem[];
+  onOpenAddEntryDialog: () => void;
 }
 
-export function AppHeader({ appName, navItems }: AppHeaderProps) {
+export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeaderProps) {
   const isMobile = useIsMobile();
   const pathname = usePathname();
   const router = useRouter();
 
   const isActive = (href: string) => {
-    // For '/dashboard', match exactly. For others, match by startsWith.
     if (href === '/dashboard') {
       return pathname === '/dashboard';
     }
@@ -39,7 +40,7 @@ export function AppHeader({ appName, navItems }: AppHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 px-4 md:px-8 border-b border-border">
+    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 px-4 md:px-8 border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16">
         {/* Left: Logo and App Name */}
         <Link href="/dashboard" className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors shrink-0">
@@ -47,9 +48,9 @@ export function AppHeader({ appName, navItems }: AppHeaderProps) {
           <span className="text-xl font-semibold">{appName}</span>
         </Link>
 
-        {/* Desktop Navigation (Centered) */}
+        {/* Desktop Navigation (Center) */}
         {!isMobile && (
-          <nav className="flex items-center space-x-1 mx-auto"> {/* mx-auto for centering */}
+          <nav className="hidden md:flex items-center space-x-1 mx-auto">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -57,8 +58,8 @@ export function AppHeader({ appName, navItems }: AppHeaderProps) {
                 className={cn(
                   "text-sm font-medium transition-colors px-3 py-2 rounded-md",
                   isActive(item.href)
-                    ? "bg-muted text-primary" // Active style
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-primary" // Inactive style
+                    ? "bg-muted text-primary" 
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-primary"
                 )}
               >
                 {item.label}
@@ -66,10 +67,22 @@ export function AppHeader({ appName, navItems }: AppHeaderProps) {
             ))}
           </nav>
         )}
+        
+        {/* Right: Action Buttons / Mobile Menu */}
+        <div className="flex items-center gap-2">
+          {!isMobile && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onOpenAddEntryDialog}
+              className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              新規記録
+            </Button>
+          )}
 
-        {/* Mobile Menu Button (Right) or Desktop Right Placeholder */}
-        {isMobile ? (
-          <div className="md:hidden"> {/* This div ensures button is on the right on mobile */}
+          {isMobile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -91,17 +104,21 @@ export function AppHeader({ appName, navItems }: AppHeaderProps) {
                     <span>{item.label}</span>
                   </DropdownMenuItem>
                 ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={onOpenAddEntryDialog} className="cursor-pointer">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  <span>新規記録</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        ) : (
-          // Desktop Right placeholder (to balance the logo if nav is truly centered by mx-auto on nav)
-          <div className="flex w-auto items-center justify-end shrink-0">
-             {/* This div acts as a spacer on desktop to help center the nav. */}
-             {/* Adjust width or content if you add user icons etc. */}
-             <div className="w-7 h-7"></div> {/* Placeholder to roughly balance the logo width */}
-          </div>
-        )}
+          ) : (
+            // Placeholder for desktop right if no other actions exist to balance layout.
+            // If the "新規記録" button is the only item, this div might not be strictly necessary,
+            // as the nav is centered by mx-auto.
+            // <div className="w-7 h-7 md:w-auto"></div> 
+            null 
+          )}
+        </div>
       </div>
     </header>
   );

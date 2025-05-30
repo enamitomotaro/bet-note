@@ -28,19 +28,20 @@ const formSchema = z.object({
     required_error: "日付を入力してください。",
   }),
   raceName: z.string().optional(),
-  betAmount: z.coerce.number().min(1, { message: "1円以上の掛け金を入力してください。" }),
-  payoutAmount: z.coerce.number().min(0, { message: "0円以上の払戻金を入力してください。" }),
+  betAmount: z.coerce.number().min(1, { message: "1円以上の掛け金を入力してください。" }).step(100),
+  payoutAmount: z.coerce.number().min(0, { message: "0円以上の払戻金を入力してください。" }).step(10),
 });
 
 type EntryFormValues = z.infer<typeof formSchema>;
 
 interface EntryFormProps {
-  id?: string; // For associating with external submit button
+  id?: string; 
   onAddEntry?: (entry: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
   onUpdateEntry?: (id: string, entry: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
   initialData?: BetEntry;
   isEditMode?: boolean;
   onClose?: () => void;
+  isInDialog?: boolean; // New prop
 }
 
 export function EntryForm({ 
@@ -49,7 +50,8 @@ export function EntryForm({
   onUpdateEntry, 
   initialData, 
   isEditMode = false,
-  onClose
+  onClose,
+  isInDialog = false, // Default to false
 }: EntryFormProps) {
   const form = useForm<EntryFormValues>({
     resolver: zodResolver(formSchema),
@@ -88,7 +90,7 @@ export function EntryForm({
       onUpdateEntry(initialData.id, entryData);
     } else if (onAddEntry) {
       onAddEntry(entryData);
-      if (!isEditMode) {
+      if (!isEditMode) { // Reset only if it's a new entry form (not in dialog or not edit mode)
         form.reset({ 
           date: new Date(),
           raceName: "",
@@ -97,18 +99,19 @@ export function EntryForm({
         });
       }
     }
-    if (onClose && isEditMode) onClose(); 
+    if (onClose) onClose(); // Call onClose if provided (used by dialogs)
   }
 
   const cardTitleText = isEditMode ? "エントリーを編集" : "新しいエントリー記録";
   const SubmitIconForAddMode = PlusCircle;
   const submitButtonTextForAddMode = "記録を追加";
-  const submitButtonTextForEditMode = "更新";
-
 
   return (
-    <Card className={`mb-8 ${isEditMode ? 'border-0 shadow-none p-0' : ''}`} data-ai-hint="form document">
-      {!isEditMode && (
+    <Card className={cn(
+        "mb-8", 
+        isInDialog ? 'border-0 shadow-none p-0' : ''
+      )} data-ai-hint="form document">
+      {!isEditMode && !isInDialog && ( // Show header only if not edit mode AND not in dialog
         <CardHeader>
           <CardTitle className="text-xl flex items-center gap-2">
             <PlusCircle className="h-6 w-6 text-accent" />
@@ -116,7 +119,7 @@ export function EntryForm({
           </CardTitle>
         </CardHeader>
       )}
-      <CardContent className={isEditMode ? 'p-0' : ''}>
+      <CardContent className={isInDialog ? 'p-0' : ''}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id={id}>
             <div className="grid md:grid-cols-2 gap-6">
@@ -201,21 +204,19 @@ export function EntryForm({
                 )}
               />
             </div>
-            {!isEditMode && ( 
+            {/* Render submit buttons only if NOT in dialog mode */}
+            {!isInDialog && !isEditMode && ( 
               <div className="flex justify-center gap-4 mt-8">
-                {onClose && ( 
-                  <Button type="button" variant="outline" onClick={() => {
+                <Button type="button" variant="outline" onClick={() => {
                     form.reset({
                       date: new Date(),
                       raceName: "",
                       betAmount: 100,
                       payoutAmount: 0,
                     });
-                    if(onClose) onClose();
                   }}>
                     リセット
                   </Button>
-                )}
                 <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground">
                   <SubmitIconForAddMode className="mr-2 h-4 w-4" />
                   {submitButtonTextForAddMode}
