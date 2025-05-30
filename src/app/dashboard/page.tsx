@@ -16,7 +16,7 @@ import type { ComponentType } from 'react';
 
 type CardId = 'stats' | 'chart' | 'table';
 
-const CARD_ORDER_KEY = 'dashboardCardOrder_v1'; // Added _v1 for potential future structure changes
+const CARD_ORDER_KEY = 'dashboardCardOrder_v1';
 
 const cardDisplayNames: Record<CardId, string> = {
   stats: "統計概要",
@@ -25,10 +25,12 @@ const cardDisplayNames: Record<CardId, string> = {
 };
 
 interface CardComponentProps {
-  stats?: DashboardStats; // For DashboardCards
-  entries?: any[]; // For ProfitChart and EntriesTable, use specific types if possible
-  onDeleteEntry?: (id: string) => void; // For EntriesTable
-  onUpdateEntry?: (id: string, data: any) => void; // For EntriesTable
+  stats?: DashboardStats;
+  entries?: any[];
+  onDeleteEntry?: (id: string) => void;
+  onUpdateEntry?: (id: string, data: any) => void;
+  displayLimit?: number;
+  viewAllLinkPath?: string;
 }
 
 const cardComponentsMap: Record<CardId, ComponentType<CardComponentProps>> = {
@@ -55,7 +57,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isLoaded) {
-      // No filtering, use all entries
       setDashboardStats(calculateStats(entries));
     }
   }, [entries, isLoaded]);
@@ -81,7 +82,16 @@ export default function DashboardPage() {
   const componentsToRender = {
     stats: { component: DashboardCards, props: { stats: dashboardStats } },
     chart: { component: ProfitChart, props: { entries } },
-    table: { component: EntriesTable, props: { entries, onDeleteEntry: deleteEntry, onUpdateEntry: updateEntry } },
+    table: { 
+      component: EntriesTable, 
+      props: { 
+        entries, 
+        onDeleteEntry: deleteEntry, 
+        onUpdateEntry: updateEntry,
+        displayLimit: 6, // ダッシュボードでは6件に制限
+        viewAllLinkPath: "/dashboard/entries" // 全履歴ページへのパス
+      } 
+    },
   };
 
   return (

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link'; // Linkコンポーネントをインポート
 import type { BetEntry } from '@/lib/types';
 import {
   Table,
@@ -12,11 +13,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Edit3, ListChecks, FilterX, ListFilter } from 'lucide-react';
+import { Pencil, Trash2, Edit3, ListChecks, FilterX, ListFilter, ArrowRight } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercentage, calculateAverageRecoveryRate } from '@/lib/calculations';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card'; // CardTitleをUiCardTitleとしてインポート
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle, DialogClose } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
@@ -32,21 +33,21 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area"; // Added import
 
 interface EntriesTableProps {
   entries: BetEntry[];
   onDeleteEntry: (id: string) => void;
   onUpdateEntry: (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
+  displayLimit?: number; // 表示件数の制限
+  viewAllLinkPath?: string; // 「全履歴を見る」ボタンのリンク先
 }
 
-export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesTableProps) {
+export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry, displayLimit, viewAllLinkPath }: EntriesTableProps) {
   const [editingEntry, setEditingEntry] = useState<BetEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [entryToDeleteId, setEntryToDeleteId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Filter states
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [isFilterUIVisible, setIsFilterUIVisible] = useState(false);
@@ -57,22 +58,26 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
   }, []);
 
   const filteredEntries = useMemo(() => {
-    if (!clientMounted) return []; // Prevent premature filtering on server or before hydration
-    return entries.filter(entry => {
-      const entryDate = parseISO(entry.date);
-      if (startDate && entryDate < startDate) return false;
-      if (endDate) {
-        const endOfDayEndDate = new Date(endDate);
-        endOfDayEndDate.setHours(23, 59, 59, 999); // Include the entire end date
-        if (entryDate > endOfDayEndDate) return false;
-      }
-      return true;
-    });
+    if (!clientMounted) return [];
+    let tempEntries = [...entries]; // 渡されたentriesをコピー
+    if (startDate) {
+      tempEntries = tempEntries.filter(entry => parseISO(entry.date) >= startDate);
+    }
+    if (endDate) {
+      const endOfDayEndDate = new Date(endDate);
+      endOfDayEndDate.setHours(23, 59, 59, 999);
+      tempEntries = tempEntries.filter(entry => parseISO(entry.date) <= endOfDayEndDate);
+    }
+    return tempEntries;
   }, [entries, startDate, endDate, clientMounted]);
-
-  const sortedEntries = useMemo(() => {
-    return [...filteredEntries].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
-  }, [filteredEntries]);
+  
+  const sortedAndLimitedEntries = useMemo(() => {
+    const sorted = [...filteredEntries].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+    if (displayLimit) {
+      return sorted.slice(0, displayLimit);
+    }
+    return sorted;
+  }, [filteredEntries, displayLimit]);
 
   const averageRecoveryRate = useMemo(() => {
     return calculateAverageRecoveryRate(filteredEntries);
@@ -116,22 +121,26 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     }
   };
 
+  const showViewAllButton = viewAllLinkPath && displayLimit && entries.length > displayLimit;
 
   return (
     <>
       <Card data-ai-hint="table spreadsheet">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-xl flex items-center gap-2">
+          <UiCardTitle className="text-xl flex items-center gap-2">
             <ListChecks className={cn("h-6 w-6 text-muted-foreground")} />
             エントリー履歴
-          </CardTitle>
+          </UiCardTitle>
           <div className="flex items-center gap-2">
             {isFilterActive && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearFilters}
-                className="text-accent hover:bg-accent hover:text-accent-foreground"
+                className={cn(
+                  "text-accent hover:bg-accent hover:text-accent-foreground",
+                  isFilterActive ? "border-accent text-accent" : ""
+                )}
                 data-ai-hint="clear filter cross"
               >
                 <FilterX className="mr-2 h-4 w-4" />
@@ -155,7 +164,6 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
         {isFilterUIVisible && (
            <div className="p-6 bg-accent/10 border border-accent/50 rounded-lg mx-6 my-4" data-ai-hint="filter controls">
             <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
-              {/* Calendar Buttons Group (Left) */}
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-center flex-grow">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -206,7 +214,6 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 </Popover>
               </div>
 
-              {/* Filter Results/Actions (Right) */}
               {isFilterActive && filteredEntries.length > 0 && (
                 <div className="text-sm text-muted-foreground text-center md:text-right mt-4 md:mt-0">
                   <p>
@@ -221,10 +228,9 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
         <CardContent className={cn(isFilterUIVisible ? 'pt-0' : 'pt-6')}>
           {entries.length === 0 && !isFilterActive ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
-          ) : sortedEntries.length === 0 && isFilterActive ? (
+          ) : sortedAndLimitedEntries.length === 0 && isFilterActive ? (
              <p className="text-muted-foreground py-4 text-center">選択された期間に該当するエントリーはありません。</p>
           ) : (
-            <ScrollArea className="max-h-[24rem]">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -238,7 +244,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedEntries.map((entry) => (
+                    {sortedAndLimitedEntries.map((entry) => (
                       <TableRow 
                         key={entry.id} 
                         onClick={() => handleEdit(entry)}
@@ -257,9 +263,18 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                   </TableBody>
                 </Table>
               </div>
-            </ScrollArea>
           )}
         </CardContent>
+        {showViewAllButton && viewAllLinkPath && (
+          <CardFooter className="justify-center pt-4 border-t">
+            <Link href={viewAllLinkPath} passHref legacyBehavior>
+              <Button variant="outline" className="w-full sm:w-auto">
+                全履歴を見る
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardFooter>
+        )}
 
         {editingEntry && (
           <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => {
@@ -326,4 +341,3 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     </>
   );
 }
-

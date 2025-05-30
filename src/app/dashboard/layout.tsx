@@ -3,7 +3,7 @@
 
 import { AppHeader } from '@/components/AppHeader';
 import type { LucideIcon } from 'lucide-react';
-import { Home, Brain, PlusCircle, Edit3, ListChecks } from 'lucide-react'; // ListPlus removed, ListChecks added for consistency
+import { Home, Brain, PlusCircle, ListChecks } from 'lucide-react'; // ListChecks を追加
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useBetEntries } from '@/hooks/useBetEntries';
@@ -12,9 +12,9 @@ import { EntryForm } from '@/components/EntryForm';
 import { Button } from '@/components/ui/button';
 import type { BetEntry } from '@/lib/types';
 
-// "収支記録" (Entries) removed from navItems
 export const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard', label: 'ダッシュボード', icon: Home },
+  { href: '/dashboard/entries', label: '収支記録', icon: ListChecks }, // 収支記録ページへのリンクを復活
   { href: '/dashboard/ai-predictor', label: 'AI予想', icon: Brain },
 ];
 
@@ -36,12 +36,6 @@ export default function DashboardLayout({
     setClientMounted(true);
   }, []);
 
-  const handleTabChange = (value: string) => {
-    router.push(value);
-  };
-
-  const currentNavItem = navItems.find(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
-
   const handleOpenAddEntryDialog = () => {
     setIsAddEntryDialogOpen(true);
   };
@@ -49,7 +43,6 @@ export default function DashboardLayout({
   const handleAddEntrySubmit = (entryData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
     addEntry(entryData);
     setIsAddEntryDialogOpen(false);
-    // Reset form if needed, EntryForm handles its own reset on successful add
   };
 
   return (
