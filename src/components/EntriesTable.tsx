@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import Link from 'next/link'; // Linkコンポーネントをインポート
+import Link from 'next/link';
 import type { BetEntry } from '@/lib/types';
 import {
   Table,
@@ -13,11 +13,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Edit3, ListChecks, FilterX, ListFilter, ArrowRight } from 'lucide-react';
+import { Pencil, Trash2, Edit3, ListChecks, FilterX, ListFilter, ArrowRight, CalendarDays } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercentage, calculateAverageRecoveryRate } from '@/lib/calculations';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card'; // CardTitleをUiCardTitleとしてインポート
+import { Card, CardContent, CardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle, DialogClose } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
@@ -26,9 +26,9 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter,
+  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle,
+  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict
 } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -38,11 +38,19 @@ interface EntriesTableProps {
   entries: BetEntry[];
   onDeleteEntry: (id: string) => void;
   onUpdateEntry: (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
-  displayLimit?: number; // 表示件数の制限
-  viewAllLinkPath?: string; // 「全履歴を見る」ボタンのリンク先
+  displayLimit?: number;
+  viewAllLinkPath?: string;
+  showFilterControls?: boolean; // New prop
 }
 
-export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry, displayLimit, viewAllLinkPath }: EntriesTableProps) {
+export function EntriesTable({ 
+  entries, 
+  onDeleteEntry, 
+  onUpdateEntry, 
+  displayLimit, 
+  viewAllLinkPath,
+  showFilterControls = true // Default to true to keep existing behavior on dedicated entries page
+}: EntriesTableProps) {
   const [editingEntry, setEditingEntry] = useState<BetEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [entryToDeleteId, setEntryToDeleteId] = useState<string | null>(null);
@@ -59,7 +67,9 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry, displayLim
 
   const filteredEntries = useMemo(() => {
     if (!clientMounted) return [];
-    let tempEntries = [...entries]; // 渡されたentriesをコピー
+    if (!showFilterControls) return entries; // If filter controls are hidden, use all entries
+
+    let tempEntries = [...entries];
     if (startDate) {
       tempEntries = tempEntries.filter(entry => parseISO(entry.date) >= startDate);
     }
@@ -69,7 +79,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry, displayLim
       tempEntries = tempEntries.filter(entry => parseISO(entry.date) <= endOfDayEndDate);
     }
     return tempEntries;
-  }, [entries, startDate, endDate, clientMounted]);
+  }, [entries, startDate, endDate, clientMounted, showFilterControls]);
   
   const sortedAndLimitedEntries = useMemo(() => {
     const sorted = [...filteredEntries].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
@@ -131,37 +141,44 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry, displayLim
             <ListChecks className={cn("h-6 w-6 text-muted-foreground")} />
             エントリー履歴
           </UiCardTitle>
-          <div className="flex items-center gap-2">
-            {isFilterActive && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className={cn(
-                  "text-accent hover:bg-accent hover:text-accent-foreground",
-                  isFilterActive ? "border-accent text-accent" : ""
-                )}
-                data-ai-hint="clear filter cross"
-              >
-                <FilterX className="mr-2 h-4 w-4" />
-                フィルター解除
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsFilterUIVisible(!isFilterUIVisible)}
-              className={cn(
-                isFilterActive ? "border-accent text-accent hover:text-accent-foreground" : ""
+          {showFilterControls ? (
+            <div className="flex items-center gap-2">
+              {isFilterActive && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className={cn(
+                    "text-accent hover:bg-accent hover:text-accent-foreground",
+                    "border-accent text-accent" 
+                  )}
+                  data-ai-hint="clear filter cross"
+                >
+                  <FilterX className="mr-2 h-4 w-4" />
+                  フィルター解除
+                </Button>
               )}
-            >
-              <ListFilter className={cn("h-4 w-4", isFilterActive ? "text-accent" : "text-muted-foreground")} />
-              <span className="ml-2 hidden sm:inline">フィルター</span>
-            </Button>
-          </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsFilterUIVisible(!isFilterUIVisible)}
+                className={cn(
+                  isFilterActive ? "border-accent text-accent hover:text-accent-foreground" : ""
+                )}
+              >
+                <ListFilter className={cn("h-4 w-4", isFilterActive ? "text-accent" : "text-muted-foreground")} />
+                <span className="ml-2 hidden sm:inline">フィルター</span>
+              </Button>
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground flex items-center">
+              <CalendarDays className="mr-1 h-4 w-4" />
+              <span>期間: すべて</span>
+            </div>
+          )}
         </CardHeader>
         
-        {isFilterUIVisible && (
+        {showFilterControls && isFilterUIVisible && (
            <div className="p-6 bg-accent/10 border border-accent/50 rounded-lg mx-6 my-4" data-ai-hint="filter controls">
             <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-center flex-grow">
@@ -222,10 +239,15 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry, displayLim
                 </div>
               )}
             </div>
+            { isFilterActive && (
+                <div className="mt-4 flex justify-center">
+                     {/* This clear filter button was part of the original logic, kept it inside the filter area */}
+                </div>
+            )}
           </div>
         )}
         
-        <CardContent className={cn(isFilterUIVisible ? 'pt-0' : 'pt-6')}>
+        <CardContent className={cn(showFilterControls && isFilterUIVisible ? 'pt-0' : 'pt-6')}>
           {entries.length === 0 && !isFilterActive ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : sortedAndLimitedEntries.length === 0 && isFilterActive ? (
@@ -250,7 +272,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry, displayLim
                         onClick={() => handleEdit(entry)}
                         className="cursor-pointer hover:bg-muted/50"
                       >
-                        <TableCell>{format(parseISO(entry.date), "yyyy/MM/dd")}</TableCell>
+                        <TableCell>{isValid(parseISO(entry.date)) ? format(parseISO(entry.date), "yyyy/MM/dd") : '-'}</TableCell>
                         <TableCell>{entry.raceName || "-"}</TableCell>
                         <TableCell className="text-right">{formatCurrency(entry.betAmount)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(entry.payoutAmount)}</TableCell>

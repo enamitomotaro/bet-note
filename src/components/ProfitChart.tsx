@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { BetEntry, ProfitChartTimespan } from '@/lib/types';
 import { prepareProfitChartData, prepareCumulativeProfitChartData, formatCurrency } from '@/lib/calculations';
-import { TrendingUp, LineChart } from 'lucide-react';
+import { TrendingUp, LineChart, CalendarDays } from 'lucide-react'; // Added CalendarDays
 
 interface ProfitChartProps {
   entries: BetEntry[];
@@ -78,7 +78,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
             {React.createElement(chartIcon, { className: "h-6 w-6 text-accent" })}
             {chartTitle}
           </CardTitle>
-          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto items-center">
             <Tabs value={chartType} onValueChange={(value) => setChartType(value as ChartType)} className="w-full sm:w-auto">
                 <TabsList className="grid grid-cols-2 w-full sm:w-auto">
                 <TabsTrigger value="period" className="text-xs px-3 py-1.5">期間別</TabsTrigger>
@@ -92,6 +92,10 @@ export function ProfitChart({ entries }: ProfitChartProps) {
                 <TabsTrigger value="monthly" className="text-xs px-3 py-1.5">月次</TabsTrigger>
                 </TabsList>
             </Tabs>
+            <div className="text-sm text-muted-foreground flex items-center ml-0 sm:ml-2 mt-2 sm:mt-0">
+              <CalendarDays className="mr-1 h-4 w-4" />
+              <span>期間: すべて</span>
+            </div>
           </div>
         </div>
       </CardHeader>

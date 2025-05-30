@@ -9,10 +9,14 @@ import { calculateStats } from '@/lib/calculations';
 import { useEffect, useState, useMemo } from 'react';
 import type { DashboardStats } from '@/lib/types';
 import { Button } from "@/components/ui/button";
-import { Settings, ArrowUp, ArrowDown } from 'lucide-react';
+import { Settings, ArrowUp, ArrowDown, ListFilter, FilterX, CalendarDays } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import useLocalStorage from '@/hooks/useLocalStorage';
 import type { ComponentType } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 type CardId = 'stats' | 'chart' | 'table';
 
@@ -31,6 +35,7 @@ interface CardComponentProps {
   onUpdateEntry?: (id: string, data: any) => void;
   displayLimit?: number;
   viewAllLinkPath?: string;
+  showFilterControls?: boolean; // For EntriesTable
 }
 
 const cardComponentsMap: Record<CardId, ComponentType<CardComponentProps>> = {
@@ -88,8 +93,9 @@ export default function DashboardPage() {
         entries, 
         onDeleteEntry: deleteEntry, 
         onUpdateEntry: updateEntry,
-        displayLimit: 6, // ダッシュボードでは6件に制限
-        viewAllLinkPath: "/dashboard/entries" // 全履歴ページへのパス
+        displayLimit: 6,
+        viewAllLinkPath: "/dashboard/entries",
+        showFilterControls: false // DashboardではEntriesTableの内部フィルターUIを非表示
       } 
     },
   };
@@ -107,14 +113,16 @@ export default function DashboardPage() {
           <Settings className="h-5 w-5" />
         </Button>
       </div>
+      
+      {/* Global filter removed from here */}
 
       <div className="space-y-8">
         {cardOrder.map((cardId) => {
-          const Card = componentsToRender[cardId].component as ComponentType<any>;
+          const CardComponent = componentsToRender[cardId].component as ComponentType<any>;
           const props = componentsToRender[cardId].props;
           return (
             <div key={cardId}>
-              <Card {...props} />
+              <CardComponent {...props} />
             </div>
           );
         })}

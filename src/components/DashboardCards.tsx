@@ -3,7 +3,7 @@
 
 import type { DashboardStats } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingUp, Percent, Target, CheckCircle, CornerRightUp, Award, BarChart3 } from 'lucide-react';
+import { DollarSign, TrendingUp, Percent, Target, CheckCircle, CornerRightUp, Award, BarChart3, CalendarDays } from 'lucide-react';
 import { formatCurrency, formatPercentage } from '@/lib/calculations';
 
 interface DashboardCardsProps {
@@ -11,8 +11,8 @@ interface DashboardCardsProps {
 }
 
 const StatItem = ({ title, value, icon: Icon, unit, dataAiHint }: { title: string; value: string | number; icon: React.ElementType; unit?: string; dataAiHint?: string }) => (
-  <div className="flex items-center p-4 rounded-lg border bg-background shadow-sm" data-ai-hint={dataAiHint}> {/* Changed items-start to items-center */}
-    <Icon className="h-7 w-7 text-muted-foreground mr-4 shrink-0" /> {/* Removed mt-1 */}
+  <div className="flex items-center p-4 rounded-lg border bg-background shadow-sm" data-ai-hint={dataAiHint}>
+    <Icon className="h-7 w-7 text-muted-foreground mr-4 shrink-0" />
     <div>
       <p className="text-sm text-muted-foreground">{title}</p>
       <p className="text-xl font-bold">
@@ -26,14 +26,18 @@ const StatItem = ({ title, value, icon: Icon, unit, dataAiHint }: { title: strin
 export function DashboardCards({ stats }: DashboardCardsProps) {
   return (
     <Card data-ai-hint="summary statistics overview">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-xl flex items-center gap-2">
           <BarChart3 className="h-6 w-6 text-accent" />
           統計概要
         </CardTitle>
+        <div className="text-sm text-muted-foreground flex items-center">
+          <CalendarDays className="mr-1 h-4 w-4" />
+          <span>期間: すべて</span>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"> {/* Adjusted grid columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <StatItem title="総投資額" value={stats.totalInvestment} icon={DollarSign} unit="currency" dataAiHint="money investment" />
           <StatItem title="総払戻額" value={stats.totalPayout} icon={TrendingUp} unit="currency" dataAiHint="money payout" />
           <StatItem title="純利益" value={stats.netProfit} icon={stats.netProfit >= 0 ? CheckCircle : CornerRightUp} unit="currency" dataAiHint="profit graph" />
