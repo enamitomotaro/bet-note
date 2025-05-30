@@ -8,13 +8,13 @@ import { useBetEntries } from '@/hooks/useBetEntries';
 import { useEffect, useState, useMemo } from 'react';
 import type { BetEntry } from '@/lib/types';
 import { Button } from "@/components/ui/button";
-import { Settings, ArrowUp, ArrowDown, ListFilter, FilterX, CalendarDays } from 'lucide-react';
+import { Settings, ArrowUp, ArrowDown, ListFilter, FilterX, CalendarDays, Save } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import useLocalStorage from '@/hooks/useLocalStorage';
 import type { ComponentType } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format, parseISO, startOfDay } from "date-fns"; // startOfDay をインポート
+import { format, parseISO, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 
 type CardId = 'stats' | 'chart' | 'table';
@@ -36,29 +36,38 @@ interface CardComponentProps {
   showFilterControls?: boolean;
 }
 
-const cardComponentsMap: Record<CardId, ComponentType<CardComponentProps>> = {
-  stats: DashboardCards,
-  chart: ProfitChart,
-  table: EntriesTable,
-};
-
-
 export default function DashboardPage() {
   const { entries: allEntries, deleteEntry, updateEntry, isLoaded } = useBetEntries();
   const [clientMounted, setClientMounted] = useState(false);
 
+  // Actual states for dashboard display and local storage
   const [cardOrder, setCardOrder] = useLocalStorage<CardId[]>(
     CARD_ORDER_KEY,
     ['stats', 'chart', 'table']
   );
-  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
-
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+
+  // Temporary states for dialog editing
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [tempCardOrder, setTempCardOrder] = useState<CardId[]>(cardOrder);
+  const [tempStartDate, setTempStartDate] = useState<Date | undefined>(startDate);
+  const [tempEndDate, setTempEndDate] = useState<Date | undefined>(endDate);
+
 
   useEffect(() => {
     setClientMounted(true);
   }, []);
+
+  // Initialize temporary states when dialog opens
+  useEffect(() => {
+    if (isSettingsDialogOpen) {
+      setTempCardOrder([...cardOrder]);
+      setTempStartDate(startDate);
+      setTempEndDate(endDate);
+    }
+  }, [isSettingsDialogOpen, cardOrder, startDate, endDate]);
+
 
   const filteredEntries = useMemo(() => {
     if (!isLoaded || !clientMounted) return [];
@@ -80,22 +89,29 @@ export default function DashboardPage() {
     return tempEntries;
   }, [allEntries, startDate, endDate, isLoaded, clientMounted]);
 
-  const moveCard = (index: number, direction: 'up' | 'down') => {
-    const newOrder = [...cardOrder];
+  const moveCardInDialog = (index: number, direction: 'up' | 'down') => {
+    const newOrder = [...tempCardOrder];
     if (direction === 'up' && index > 0) {
       [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
     } else if (direction === 'down' && index < newOrder.length - 1) {
       [newOrder[index + 1], newOrder[index]] = [newOrder[index], newOrder[index + 1]];
     }
-    setCardOrder(newOrder);
+    setTempCardOrder(newOrder);
   };
 
-  const clearFilters = () => {
-    setStartDate(undefined);
-    setEndDate(undefined);
+  const clearFiltersInDialog = () => {
+    setTempStartDate(undefined);
+    setTempEndDate(undefined);
   };
 
-  const isFilterActive = startDate || endDate;
+  const handleSaveChanges = () => {
+    setCardOrder(tempCardOrder);
+    setStartDate(tempStartDate);
+    setEndDate(tempEndDate);
+    setIsSettingsDialogOpen(false);
+  };
+
+  const isTempFilterActive = tempStartDate || tempEndDate;
 
 
   if (!isLoaded || !clientMounted) {
@@ -164,20 +180,20 @@ export default function DashboardPage() {
                       variant={"outline"}
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !startDate && "text-muted-foreground"
+                        !tempStartDate && "text-muted-foreground"
                       )}
                     >
                       <CalendarDays className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : <span>開始日</span>}
+                      {tempStartDate ? format(tempStartDate, "PPP") : <span>開始日</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
+                      selected={tempStartDate}
+                      onSelect={setTempStartDate}
                       initialFocus
-                      disabled={(date) => endDate ? date > endDate : false}
+                      disabled={(date) => tempEndDate ? date > tempEndDate : false}
                     />
                   </PopoverContent>
                 </Popover>
@@ -187,28 +203,28 @@ export default function DashboardPage() {
                       variant={"outline"}
                        className={cn(
                         "w-full justify-start text-left font-normal",
-                        !endDate && "text-muted-foreground"
+                        !tempEndDate && "text-muted-foreground"
                       )}
                     >
                       <CalendarDays className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : <span>終了日</span>}
+                      {tempEndDate ? format(tempEndDate, "PPP") : <span>終了日</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
+                      selected={tempEndDate}
+                      onSelect={setTempEndDate}
                       initialFocus
-                      disabled={(date) => startDate ? date < startDate : false}
+                      disabled={(date) => tempStartDate ? date < tempStartDate : false}
                     />
                   </PopoverContent>
                 </Popover>
               </div>
-              {isFilterActive && (
+              {isTempFilterActive && (
                 <Button
                   variant="ghost"
-                  onClick={clearFilters}
+                  onClick={clearFiltersInDialog}
                   className="w-full text-accent hover:bg-accent/10"
                   data-ai-hint="clear filter cross"
                 >
@@ -221,14 +237,14 @@ export default function DashboardPage() {
             <div>
                 <h3 className="text-lg font-medium mb-3 border-t pt-4">カードの表示順</h3>
                 <div className="space-y-2">
-                {cardOrder.map((cardId, index) => (
+                {tempCardOrder.map((cardId, index) => (
                 <div key={cardId} className="flex items-center justify-between p-3 border rounded-md bg-background">
                     <span className="font-medium">{cardDisplayNames[cardId]}</span>
                     <div className="space-x-2">
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => moveCard(index, 'up')}
+                        onClick={() => moveCardInDialog(index, 'up')}
                         disabled={index === 0}
                         aria-label={`${cardDisplayNames[cardId]}を上に移動`}
                     >
@@ -237,8 +253,8 @@ export default function DashboardPage() {
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => moveCard(index, 'down')}
-                        disabled={index === cardOrder.length - 1}
+                        onClick={() => moveCardInDialog(index, 'down')}
+                        disabled={index === tempCardOrder.length - 1}
                         aria-label={`${cardDisplayNames[cardId]}を下に移動`}
                     >
                         <ArrowDown className="h-4 w-4" />
@@ -249,11 +265,17 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-           <DialogClose asChild>
-            <Button type="button" variant="outline" className="mt-4 w-full">
-              閉じる
+           <div className="mt-6 pt-4 border-t flex items-center justify-between">
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                閉じる
+              </Button>
+            </DialogClose>
+            <Button type="button" onClick={handleSaveChanges} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Save className="mr-2 h-4 w-4" />
+              保存する
             </Button>
-          </DialogClose>
+          </div>
         </DialogContent>
       </Dialog>
     </>
