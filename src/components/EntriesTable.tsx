@@ -11,6 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
@@ -18,8 +19,8 @@ import { Pencil, Trash2, Edit3, ListChecks, ArrowRight, Filter as FilterIcon, Ar
 import { format, parseISO, isValid, startOfDay } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
-import { formatCurrency, formatPercentage, calculateAverageRecoveryRate } from '@/lib/calculations';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card';
+import { formatCurrency, formatPercentage } from '@/lib/calculations';
+import { Card, CardContent, CardFooter as UiCardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
@@ -99,7 +100,7 @@ export function EntriesTable({
       }
       return { key, direction: 'asc' };
     });
-    setIsSortPopoverOpen(false); 
+    if (isSortPopoverOpen) setIsSortPopoverOpen(false); 
   };
   
   const filteredAndSortedEntries = useMemo(() => {
@@ -151,16 +152,44 @@ export function EntriesTable({
   }, [entries, startDate, endDate, searchQuery, sortConfig, clientMounted, showFilterControls]);
 
   const entriesForTable = useMemo(() => {
-    if (displayLimit && showFilterControls === false) { // Apply displayLimit only when on dashboard
+    if (displayLimit && showFilterControls === false) { 
       return filteredAndSortedEntries.slice(0, displayLimit);
     }
     return filteredAndSortedEntries;
   }, [filteredAndSortedEntries, displayLimit, showFilterControls]);
 
 
-  const averageRecoveryRate = useMemo(() => {
-    return calculateAverageRecoveryRate(filteredAndSortedEntries);
-  }, [filteredAndSortedEntries]);
+  const {
+    totalBetAmount,
+    totalPayoutAmount,
+    totalProfitLoss,
+    overallRecoveryRateForFooter,
+  } = useMemo(() => {
+    // Calculate totals based on all filtered and sorted entries, not just `entriesForTable`
+    const sourceForTotals = filteredAndSortedEntries;
+
+    if (!clientMounted || sourceForTotals.length === 0) {
+      return {
+        totalBetAmount: 0,
+        totalPayoutAmount: 0,
+        totalProfitLoss: 0,
+        overallRecoveryRateForFooter: 0,
+      };
+    }
+
+    const currentTotalBetAmount = sourceForTotals.reduce((sum, entry) => sum + entry.betAmount, 0);
+    const currentTotalPayoutAmount = sourceForTotals.reduce((sum, entry) => sum + entry.payoutAmount, 0);
+    const currentTotalProfitLoss = currentTotalPayoutAmount - currentTotalBetAmount;
+    const currentOverallRecoveryRate = currentTotalBetAmount > 0 ? (currentTotalPayoutAmount / currentTotalBetAmount) * 100 : 0;
+
+    return {
+      totalBetAmount: currentTotalBetAmount,
+      totalPayoutAmount: currentTotalPayoutAmount,
+      totalProfitLoss: currentTotalProfitLoss,
+      overallRecoveryRateForFooter: currentOverallRecoveryRate,
+    };
+  }, [filteredAndSortedEntries, clientMounted]);
+
 
   const isDateFilterActive = startDate || endDate;
 
@@ -249,7 +278,7 @@ export function EntriesTable({
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="text-muted-foreground hover:text-accent hover:bg-accent/20" 
+                  className="text-muted-foreground hover:text-accent hover:bg-accent/20"
                   aria-label="並べ替え"
                 >
                 <ArrowUpDown className="h-4 w-4" />
@@ -282,8 +311,8 @@ export function EntriesTable({
               variant="ghost"
               size="icon"
               className={cn(
-                "hover:bg-accent/20", 
-                isDateFilterActive ? "text-accent hover:text-accent" : "text-muted-foreground hover:text-accent"
+                "hover:text-accent hover:bg-accent/20", 
+                isDateFilterActive ? "text-accent" : "text-muted-foreground"
               )}
               aria-label="期間フィルター"
             >
@@ -332,13 +361,7 @@ export function EntriesTable({
           {filterControlElements}
         </CardHeader>
 
-        {showFilterControls && isDateFilterActive && filteredAndSortedEntries.length > 0 && (
-           <div className="px-6 py-3 border-b text-sm text-muted-foreground">
-            選択期間の平均回収率: <strong className="text-accent">{formatPercentage(averageRecoveryRate)}</strong>
-          </div>
-        )}
-
-        <CardContent className={cn("pt-6", (showFilterControls && isDateFilterActive && filteredAndSortedEntries.length > 0) ? 'pt-3' : 'pt-6')}>
+        <CardContent className={cn("pt-6")}> {/* Removed conditional padding based on filter */}
           {(entriesForTable).length === 0 && !isDateFilterActive && showFilterControls && entries.length === 0 ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : entriesForTable.length === 0 && (isDateFilterActive || searchQuery) && showFilterControls ? (
@@ -347,7 +370,7 @@ export function EntriesTable({
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : (
             <ScrollArea 
-                className={cn((displayLimit && entriesForTable.length >= displayLimit && showFilterControls === false) ? 'h-[calc(5*3.5rem+2.25rem)]' : '')}
+                className={cn((displayLimit && entriesForTable.length >= displayLimit && showFilterControls === false) ? 'max-h-[calc(5*3.5rem+2.25rem+3rem)]' : '')} // Adjusted height for footer
             >
               <div className="overflow-x-auto">
                 <Table>
@@ -357,7 +380,8 @@ export function EntriesTable({
                         <TableHead 
                           key={col.key} 
                           className={cn(
-                            "cursor-pointer hover:bg-muted/50 whitespace-nowrap", 
+                            showFilterControls ? "cursor-pointer hover:bg-muted/50" : "",
+                            "whitespace-nowrap", 
                             col.key === 'betAmount' || col.key === 'payoutAmount' || col.key === 'profitLoss' || col.key === 'roi' ? 'text-right' : ''
                           )}
                           onClick={() => showFilterControls && handleSort(col.key)}
@@ -390,20 +414,33 @@ export function EntriesTable({
                       </TableRow>
                     ))}
                   </TableBody>
+                  {filteredAndSortedEntries.length > 0 && ( // Show footer if there are any filtered entries
+                     <TableFooter>
+                        <TableRow className="h-[3rem]">
+                          <TableCell colSpan={2} className="font-medium text-left">合計</TableCell>
+                          <TableCell className="text-right font-medium">{formatCurrency(totalBetAmount)}</TableCell>
+                          <TableCell className="text-right font-medium">{formatCurrency(totalPayoutAmount)}</TableCell>
+                          <TableCell className={`text-right font-medium ${totalProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {formatCurrency(totalProfitLoss)}
+                          </TableCell>
+                          <TableCell className="text-right font-medium">{formatPercentage(overallRecoveryRateForFooter)}</TableCell>
+                        </TableRow>
+                      </TableFooter>
+                  )}
                 </Table>
               </div>
             </ScrollArea>
           )}
         </CardContent>
         {showViewAllButton && (
-          <CardFooter className="justify-center pt-4 border-t">
+          <UiCardFooter className="justify-center pt-4 border-t">
             <Link href={viewAllLinkPath!} passHref legacyBehavior>
               <Button variant="outline" className="w-full sm:w-auto">
                 全履歴を見る
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-          </CardFooter>
+          </UiCardFooter>
         )}
 
         {editingEntry && (
@@ -471,3 +508,4 @@ export function EntriesTable({
     </>
   );
 }
+
