@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
 import type { BetEntry } from '@/lib/types';
 import {
@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Edit3, ListChecks, FilterX, ListFilter, ArrowRight } from 'lucide-react';
+import { Pencil, Trash2, Edit3, ListChecks, ArrowRight, Filter, ArrowUpDown, Search, CalendarIcon as LucideCalendarIcon, FilterX } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercentage, calculateAverageRecoveryRate } from '@/lib/calculations';
@@ -26,13 +26,14 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter,
+  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 
 interface EntriesTableProps {
   entries: BetEntry[];
@@ -43,13 +44,13 @@ interface EntriesTableProps {
   showFilterControls?: boolean;
 }
 
-export function EntriesTable({ 
-  entries, 
-  onDeleteEntry, 
-  onUpdateEntry, 
-  displayLimit, 
+export function EntriesTable({
+  entries,
+  onDeleteEntry,
+  onUpdateEntry,
+  displayLimit,
   viewAllLinkPath,
-  showFilterControls = true 
+  showFilterControls = true,
 }: EntriesTableProps) {
   const [editingEntry, setEditingEntry] = useState<BetEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -58,7 +59,6 @@ export function EntriesTable({
 
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [isFilterUIVisible, setIsFilterUIVisible] = useState(false);
   const [clientMounted, setClientMounted] = useState(false);
 
   useEffect(() => {
@@ -67,37 +67,34 @@ export function EntriesTable({
 
   const internalFilteredEntries = useMemo(() => {
     if (!clientMounted) return [];
-    if (!showFilterControls) return entries; // If filter controls are hidden (dashboard), use pre-filtered entries
+    if (!showFilterControls) return entries;
 
-    let tempEntries = [...entries]; // For dedicated entries page, filter internally
+    let tempEntries = [...entries];
     if (startDate) {
-      tempEntries = tempEntries.filter(entry => parseISO(entry.date) >= startDate);
+      const filterStart = startOfDay(parseISO(format(startDate, "yyyy-MM-dd")));
+      tempEntries = tempEntries.filter(entry => startOfDay(parseISO(entry.date)) >= filterStart);
     }
     if (endDate) {
-      const endOfDayEndDate = new Date(endDate);
-      endOfDayEndDate.setHours(23, 59, 59, 999);
-      tempEntries = tempEntries.filter(entry => parseISO(entry.date) <= endOfDayEndDate);
+      const filterEnd = startOfDay(parseISO(format(endDate, "yyyy-MM-dd")));
+      tempEntries = tempEntries.filter(entry => startOfDay(parseISO(entry.date)) <= filterEnd);
     }
     return tempEntries;
   }, [entries, startDate, endDate, clientMounted, showFilterControls]);
-  
+
   const sortedAndLimitedEntries = useMemo(() => {
-    // Use internalFilteredEntries if showFilterControls is true (dedicated page),
-    // otherwise use the 'entries' prop (pre-filtered on dashboard)
-    const entriesToProcess = showFilterControls ? internalFilteredEntries : entries;
+    const entriesToProcess = internalFilteredEntries;
     const sorted = [...entriesToProcess].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
     if (displayLimit) {
       return sorted.slice(0, displayLimit);
     }
     return sorted;
-  }, [internalFilteredEntries, entries, displayLimit, showFilterControls]);
+  }, [internalFilteredEntries, displayLimit]);
 
   const averageRecoveryRate = useMemo(() => {
-    const entriesToCalc = showFilterControls ? internalFilteredEntries : entries;
-    return calculateAverageRecoveryRate(entriesToCalc);
-  }, [internalFilteredEntries, entries, showFilterControls]);
-  
-  const isFilterActive = showFilterControls && (startDate || endDate);
+    return calculateAverageRecoveryRate(internalFilteredEntries);
+  }, [internalFilteredEntries]);
+
+  const isFilterActive = startDate || endDate;
 
   const clearFilters = () => {
     setStartDate(undefined);
@@ -135,62 +132,38 @@ export function EntriesTable({
     }
   };
 
-  const showViewAllButton = viewAllLinkPath && displayLimit && (showFilterControls ? internalFilteredEntries : entries).length > displayLimit;
+  const showViewAllButton = viewAllLinkPath && displayLimit && internalFilteredEntries.length > displayLimit;
 
-  return (
-    <>
-      <Card data-ai-hint="table spreadsheet">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <UiCardTitle className="text-xl flex items-center gap-2">
-            <ListChecks className={cn("h-6 w-6 text-muted-foreground")} />
-            エントリー履歴
-          </UiCardTitle>
-          {showFilterControls ? ( // Only show these controls on dedicated entries page
-            <div className="flex items-center gap-2">
-              {isFilterActive && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className={cn(
-                    "text-accent hover:bg-accent hover:text-accent-foreground",
-                    "border-accent text-accent" 
-                  )}
-                  data-ai-hint="clear filter cross"
-                >
-                  <FilterX className="mr-2 h-4 w-4" />
-                  フィルター解除
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsFilterUIVisible(!isFilterUIVisible)}
-                className={cn(
-                  isFilterActive ? "border-accent text-accent hover:text-accent-foreground" : ""
-                )}
-              >
-                <ListFilter className={cn("h-4 w-4", isFilterActive ? "text-accent" : "text-muted-foreground")} />
-                <span className="ml-2 hidden sm:inline">フィルター</span>
-              </Button>
-            </div>
-          ) : null }
-        </CardHeader>
-        
-        {showFilterControls && isFilterUIVisible && (
-           <div className="p-6 bg-accent/10 border border-accent/50 rounded-lg mx-6 my-4" data-ai-hint="filter controls">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-center flex-grow">
-                <Popover>
+  let filterControlElements: ReactNode = null;
+  if (showFilterControls) {
+    filterControlElements = (
+      <div className="flex items-center gap-1 ml-auto">
+        {/* Filter Popover */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn("hover:bg-accent/10", isFilterActive ? "text-accent" : "text-muted-foreground")}
+              aria-label="フィルター"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-4 space-y-4 bg-card shadow-xl rounded-lg border" align="end">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-card-foreground">期間で絞り込み</p>
+              <div className="grid grid-cols-1 gap-2">
+                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant={"outline"}
                       className={cn(
-                        "w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-card/90",
+                        "w-full justify-start text-left font-normal",
                         !startDate && "text-muted-foreground"
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <LucideCalendarIcon className="mr-2 h-4 w-4" />
                       {startDate ? format(startDate, "PPP") : <span>開始日</span>}
                     </Button>
                   </PopoverTrigger>
@@ -204,17 +177,16 @@ export function EntriesTable({
                     />
                   </PopoverContent>
                 </Popover>
-                <span className="text-muted-foreground hidden sm:inline">-</span>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant={"outline"}
                        className={cn(
-                        "w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-card/90",
+                        "w-full justify-start text-left font-normal",
                         !endDate && "text-muted-foreground"
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <LucideCalendarIcon className="mr-2 h-4 w-4" />
                       {endDate ? format(endDate, "PPP") : <span>終了日</span>}
                     </Button>
                   </PopoverTrigger>
@@ -229,24 +201,59 @@ export function EntriesTable({
                   </PopoverContent>
                 </Popover>
               </div>
-
-              {isFilterActive && internalFilteredEntries.length > 0 && (
-                <div className="text-sm text-muted-foreground text-center md:text-right mt-4 md:mt-0">
-                  <p>
-                    選択期間の平均回収率: <strong className="text-accent">{formatPercentage(averageRecoveryRate)}</strong>
-                  </p>
-                </div>
-              )}
             </div>
+            {isFilterActive && (
+              <Button
+                variant="ghost"
+                onClick={clearFilters}
+                className="w-full text-accent hover:bg-accent/10"
+              >
+                <FilterX className="mr-2 h-4 w-4" />
+                フィルターを解除
+              </Button>
+            )}
+          </PopoverContent>
+        </Popover>
+
+        {/* Sort Button (Placeholder) */}
+        <Button variant="ghost" size="icon" disabled className="cursor-not-allowed opacity-50 text-muted-foreground" aria-label="並べ替え">
+          <ArrowUpDown className="h-4 w-4" />
+        </Button>
+
+        {/* Search Button (Placeholder) */}
+        <Button variant="ghost" size="icon" disabled className="cursor-not-allowed opacity-50 text-muted-foreground" aria-label="検索">
+          <Search className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Card data-ai-hint="table spreadsheet">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <UiCardTitle className="text-xl flex items-center gap-2">
+            <ListChecks className="h-6 w-6 text-muted-foreground" />
+            エントリー履歴
+          </UiCardTitle>
+          {filterControlElements}
+        </CardHeader>
+
+        {showFilterControls && isFilterActive && internalFilteredEntries.length > 0 && (
+           <div className="px-6 py-3 border-b text-sm text-muted-foreground">
+            選択期間の平均回収率: <strong className="text-accent">{formatPercentage(averageRecoveryRate)}</strong>
           </div>
         )}
-        
-        <CardContent className={cn(showFilterControls && isFilterUIVisible ? 'pt-0' : 'pt-6')}>
-          {(showFilterControls ? internalFilteredEntries : entries).length === 0 && !isFilterActive ? (
+
+        <CardContent className={cn("pt-6", (showFilterControls && isFilterActive && internalFilteredEntries.length > 0) ? 'pt-3' : 'pt-6', displayLimit ? 'max-h-[24rem] overflow-y-auto' : '')}>
+          {(internalFilteredEntries).length === 0 && !isFilterActive && showFilterControls ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
-          ) : sortedAndLimitedEntries.length === 0 && isFilterActive ? (
+          ) : sortedAndLimitedEntries.length === 0 && isFilterActive && showFilterControls ? (
              <p className="text-muted-foreground py-4 text-center">選択された期間に該当するエントリーはありません。</p>
+          ) : sortedAndLimitedEntries.length === 0 && !showFilterControls && entries.length === 0 ? (
+             <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : (
+            <ScrollArea className={cn(displayLimit && sortedAndLimitedEntries.length > displayLimit ? `h-[calc(6*2.5rem+1rem)]` : '')}> {/* Adjusted height for ~6 items */}
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -261,8 +268,8 @@ export function EntriesTable({
                   </TableHeader>
                   <TableBody>
                     {sortedAndLimitedEntries.map((entry) => (
-                      <TableRow 
-                        key={entry.id} 
+                      <TableRow
+                        key={entry.id}
                         onClick={() => handleEdit(entry)}
                         className="cursor-pointer hover:bg-muted/50"
                       >
@@ -279,6 +286,7 @@ export function EntriesTable({
                   </TableBody>
                 </Table>
               </div>
+            </ScrollArea>
           )}
         </CardContent>
         {showViewAllButton && viewAllLinkPath && (
@@ -313,17 +321,17 @@ export function EntriesTable({
                 isInDialog={true}
               />
               <DialogFooter className="mt-6 pt-4 border-t flex items-center justify-between">
-                 <Button 
-                    variant="destructive" 
-                    onClick={() => requestDeleteEntry(editingEntry.id)} 
+                 <Button
+                    variant="destructive"
+                    onClick={() => requestDeleteEntry(editingEntry.id)}
                     className="min-w-[100px]"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
                 </Button>
-                <Button 
-                    type="submit" 
-                    form="edit-entry-form-in-dialog" 
+                <Button
+                    type="submit"
+                    form="edit-entry-form-in-dialog"
                     className="bg-accent hover:bg-accent/90 text-accent-foreground min-w-[100px]"
                 >
                   <Edit3 className="mr-2 h-4 w-4" />
@@ -343,7 +351,7 @@ export function EntriesTable({
               この操作は元に戻せません。エントリーが完全に削除されます。
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <UiAlertDialogFooter>
+          <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>キャンセル</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteEntry}
@@ -351,7 +359,7 @@ export function EntriesTable({
             >
               削除する
             </AlertDialogAction>
-          </UiAlertDialogFooter>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
