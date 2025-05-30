@@ -3,7 +3,7 @@
 
 import { AppHeader } from '@/components/AppHeader';
 import type { LucideIcon } from 'lucide-react';
-import { Home, Brain, PlusCircle, ListChecks } from 'lucide-react'; // ListChecks を追加
+import { Home, Brain, PlusCircle, ListChecks } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useBetEntries } from '@/hooks/useBetEntries';
@@ -14,7 +14,7 @@ import type { BetEntry } from '@/lib/types';
 
 export const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard', label: 'ダッシュボード', icon: Home },
-  { href: '/dashboard/entries', label: '収支記録', icon: ListChecks }, // 収支記録ページへのリンクを復活
+  { href: '/dashboard/entries', label: 'エントリー履歴', icon: ListChecks }, // 文言変更
   { href: '/dashboard/ai-predictor', label: 'AI予想', icon: Brain },
 ];
 

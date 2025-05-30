@@ -5,9 +5,8 @@ import { DashboardCards } from '@/components/DashboardCards';
 import { ProfitChart } from '@/components/ProfitChart';
 import { EntriesTable } from '@/components/EntriesTable';
 import { useBetEntries } from '@/hooks/useBetEntries';
-import { calculateStats } from '@/lib/calculations';
 import { useEffect, useState, useMemo } from 'react';
-import type { DashboardStats, BetEntry } from '@/lib/types';
+import type { BetEntry } from '@/lib/types';
 import { Button } from "@/components/ui/button";
 import { Settings, ArrowUp, ArrowDown, ListFilter, FilterX, CalendarDays } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
@@ -15,12 +14,12 @@ import useLocalStorage from '@/hooks/useLocalStorage';
 import type { ComponentType } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, startOfDay } from "date-fns"; // startOfDay をインポート
 import { cn } from "@/lib/utils";
 
 type CardId = 'stats' | 'chart' | 'table';
 
-const CARD_ORDER_KEY = 'dashboardCardOrder_v2'; // Changed key to reset for users if structure changes significantly
+const CARD_ORDER_KEY = 'dashboardCardOrder_v2';
 
 const cardDisplayNames: Record<CardId, string> = {
   stats: "統計概要",
@@ -29,12 +28,12 @@ const cardDisplayNames: Record<CardId, string> = {
 };
 
 interface CardComponentProps {
-  entries: BetEntry[]; // Changed from stats to entries for DashboardCards
+  entries: BetEntry[];
   onDeleteEntry?: (id: string) => void;
   onUpdateEntry?: (id: string, data: any) => void;
   displayLimit?: number;
   viewAllLinkPath?: string;
-  showFilterControls?: boolean; 
+  showFilterControls?: boolean;
 }
 
 const cardComponentsMap: Record<CardId, ComponentType<CardComponentProps>> = {
@@ -65,12 +64,18 @@ export default function DashboardPage() {
     if (!isLoaded || !clientMounted) return [];
     let tempEntries = [...allEntries];
     if (startDate) {
-      tempEntries = tempEntries.filter(entry => parseISO(entry.date) >= startDate);
+      const filterStart = startOfDay(startDate);
+      tempEntries = tempEntries.filter(entry => {
+        const entryDate = startOfDay(parseISO(entry.date));
+        return entryDate >= filterStart;
+      });
     }
     if (endDate) {
-      const endOfDayEndDate = new Date(endDate);
-      endOfDayEndDate.setHours(23, 59, 59, 999);
-      tempEntries = tempEntries.filter(entry => parseISO(entry.date) <= endOfDayEndDate);
+      const filterEnd = startOfDay(endDate);
+      tempEntries = tempEntries.filter(entry => {
+        const entryDate = startOfDay(parseISO(entry.date));
+        return entryDate <= filterEnd;
+      });
     }
     return tempEntries;
   }, [allEntries, startDate, endDate, isLoaded, clientMounted]);
@@ -100,29 +105,29 @@ export default function DashboardPage() {
       </div>
     );
   }
-  
+
   const componentsToRender = {
     stats: { component: DashboardCards, props: { entries: filteredEntries } },
     chart: { component: ProfitChart, props: { entries: filteredEntries } },
-    table: { 
-      component: EntriesTable, 
-      props: { 
-        entries: filteredEntries, 
-        onDeleteEntry: deleteEntry, 
+    table: {
+      component: EntriesTable,
+      props: {
+        entries: filteredEntries,
+        onDeleteEntry: deleteEntry,
         onUpdateEntry: updateEntry,
-        displayLimit: 5, // Changed from 6 to 5
+        displayLimit: 5,
         viewAllLinkPath: "/dashboard/entries",
-        showFilterControls: false 
-      } 
+        showFilterControls: false
+      }
     },
   };
 
   return (
     <>
       <div className="flex justify-end mb-4">
-        <Button 
-          variant="outline" 
-          size="icon" 
+        <Button
+          variant="outline"
+          size="icon"
           onClick={() => setIsSettingsDialogOpen(true)}
           data-ai-hint="layout settings gears"
           aria-label="レイアウト・フィルター設定"
@@ -130,7 +135,7 @@ export default function DashboardPage() {
           <Settings className="h-5 w-5" />
         </Button>
       </div>
-      
+
       <div className="space-y-8">
         {cardOrder.map((cardId) => {
           const CardComponent = componentsToRender[cardId].component as ComponentType<any>;
@@ -144,11 +149,11 @@ export default function DashboardPage() {
       </div>
 
       <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
-        <DialogContent className="sm:max-w-lg bg-card"> {/* Increased max-width slightly for filter controls */}
+        <DialogContent className="sm:max-w-lg bg-card">
           <DialogHeader>
             <DialogTitle>レイアウト・フィルター設定</DialogTitle>
           </DialogHeader>
-          
+
           <div className="py-4 space-y-6">
             <div>
               <h3 className="text-lg font-medium mb-3">期間フィルター</h3>
