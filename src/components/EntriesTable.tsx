@@ -12,12 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, ListFilter, FilterX, Pencil, Percent, Edit3, Trash2 } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format, parseISO, isValid } from 'date-fns';
+import { Pencil, Percent, Edit3, Trash2, ListChecks } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { calculateAverageRecoveryRate, formatCurrency, formatPercentage } from '@/lib/calculations';
+import { formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle, DialogClose } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
@@ -27,9 +25,9 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter, // Renamed to avoid conflict
+  AlertDialogFooter as UiAlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle as UiAlertDialogTitle, // Renamed to avoid conflict
+  AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
 interface EntriesTableProps {
@@ -39,46 +37,14 @@ interface EntriesTableProps {
 }
 
 export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesTableProps) {
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [clientMounted, setClientMounted] = useState(false);
   const [editingEntry, setEditingEntry] = useState<BetEntry | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [entryToDeleteId, setEntryToDeleteId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isFilterUIVisible, setIsFilterUIVisible] = useState(false);
-
-  useEffect(() => {
-    setClientMounted(true);
-  }, []);
-
-  const filteredEntries = useMemo(() => {
-    if (!clientMounted) return [];
-    return entries.filter(entry => {
-      const entryDate = parseISO(entry.date);
-      if (!isValid(entryDate)) return false;
-      const start = startDate ? new Date(startDate.setHours(0,0,0,0)) : null;
-      const end = endDate ? new Date(endDate.setHours(23,59,59,999)) : null;
-
-      if (start && entryDate < start) return false;
-      if (end && entryDate > end) return false;
-      return true;
-    }).sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
-  }, [entries, startDate, endDate, clientMounted]);
-
-  const averageRecoveryRateForFiltered = useMemo(() => {
-    return calculateAverageRecoveryRate(filteredEntries);
-  }, [filteredEntries]);
-
-  const clearFilters = () => {
-    setStartDate(undefined);
-    setEndDate(undefined);
-  };
   
-  const handleClearFiltersClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation(); 
-    clearFilters();
-  };
+  const sortedEntries = useMemo(() => {
+    return [...entries].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+  }, [entries]);
 
   const handleEdit = (entry: BetEntry) => {
     setEditingEntry(entry);
@@ -111,100 +77,18 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     }
   };
 
-  if (!clientMounted) {
-    return (
-        <Card data-ai-hint="table spreadsheet">
-            <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                    <ListFilter className="h-6 w-6 text-accent" />
-                    エントリー履歴
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p>読み込み中...</p>
-            </CardContent>
-        </Card>
-    );
-  }
-
-  const isFilterActive = startDate || endDate;
-
   return (
     <>
       <Card data-ai-hint="table spreadsheet">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl flex items-center gap-2">
-            <ListFilter className={cn("h-6 w-6", isFilterActive ? "text-accent" : "text-muted-foreground")} />
+            <ListChecks className={cn("h-6 w-6 text-muted-foreground")} />
             エントリー履歴
           </CardTitle>
-          <div className="flex items-center gap-2">
-            {isFilterActive && (
-              <Button 
-                variant="ghost" 
-                onClick={handleClearFiltersClick} 
-                className="text-accent hover:bg-accent hover:text-accent-foreground"
-                aria-label="フィルターを解除"
-              >
-                <FilterX className="mr-2 h-4 w-4" />
-                解除
-              </Button>
-            )}
-            <Button 
-              variant="outline" 
-              onClick={() => setIsFilterUIVisible(!isFilterUIVisible)} 
-              aria-label="フィルター設定を開閉"
-              className={cn(
-                "transition-colors",
-                isFilterActive && "border-accent text-accent hover:text-accent-foreground hover:bg-accent" 
-              )}
-            >
-              <ListFilter className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">フィルター</span>
-            </Button>
-          </div>
         </CardHeader>
-
-        {isFilterUIVisible && (
-          <div className="p-6 bg-accent/10 border border-accent/50 rounded-lg mx-6 my-4" data-ai-hint="filter controls">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-              {/* Calendar Buttons Group (Left) */}
-              <div className="flex flex-col sm:flex-row gap-4 items-center">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-accent hover:text-accent-foreground", !startDate && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : <span>開始日</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
-                  </PopoverContent>
-                </Popover>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal bg-card hover:bg-accent hover:text-accent-foreground", !endDate && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : <span>終了日</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {isFilterActive && filteredEntries.length > 0 && (
-                <div className="mt-4 md:mt-0 text-sm text-accent font-medium flex items-center justify-center md:justify-start gap-2">
-                    <Percent className="h-4 w-4" />
-                    <span>選択期間の平均回収率: <span className="font-semibold">{formatPercentage(averageRecoveryRateForFiltered)}</span></span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
         
-        <CardContent className={isFilterUIVisible ? 'pt-0' : 'pt-6'}>
-          {filteredEntries.length === 0 ? (
+        <CardContent className='pt-6'>
+          {sortedEntries.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center">表示するエントリーがありません。</p>
           ) : (
             <div className="overflow-x-auto">
@@ -221,7 +105,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredEntries.map((entry) => (
+                  {sortedEntries.map((entry) => (
                     <TableRow key={entry.id}>
                       <TableCell>{format(parseISO(entry.date), "yyyy/MM/dd")}</TableCell>
                       <TableCell>{entry.raceName || "-"}</TableCell>
@@ -232,7 +116,13 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                       </TableCell>
                       <TableCell className="text-right">{formatPercentage(entry.roi)}</TableCell>
                       <TableCell className="text-center">
-                         <Button variant="ghost" size="icon" onClick={() => handleEdit(entry)} aria-label="編集" className="hover:bg-accent hover:text-accent-foreground">
+                         <Button 
+                           variant="ghost" 
+                           size="icon" 
+                           onClick={() => handleEdit(entry)} 
+                           aria-label="編集" 
+                           className="hover:bg-accent hover:text-accent-foreground"
+                          >
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -265,11 +155,19 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 isInDialog={true}
               />
               <DialogFooter className="mt-6 pt-4 border-t flex items-center justify-between">
-                <Button variant="destructive" onClick={() => requestDeleteEntry(editingEntry.id)} className="min-w-[100px]">
+                <Button 
+                    variant="destructive" 
+                    onClick={() => requestDeleteEntry(editingEntry.id)} 
+                    className="min-w-[100px]"
+                >
                   <Trash2 className="mr-2 h-4 w-4" />
                   削除
                 </Button>
-                <Button type="submit" form="edit-entry-form" className="bg-accent hover:bg-accent/90 text-accent-foreground min-w-[100px]">
+                <Button 
+                    type="submit" 
+                    form="edit-entry-form" 
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground min-w-[100px]"
+                >
                   <Edit3 className="mr-2 h-4 w-4" />
                   更新
                 </Button>

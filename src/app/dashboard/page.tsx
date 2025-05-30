@@ -3,6 +3,7 @@
 
 import { DashboardCards } from '@/components/DashboardCards';
 import { ProfitChart } from '@/components/ProfitChart';
+import { EntriesTable } from '@/components/EntriesTable'; // Added
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { calculateStats } from '@/lib/calculations';
 import { useEffect, useState, useMemo } from 'react';
@@ -21,7 +22,7 @@ import {
 } from "@/components/ui/accordion";
 
 export default function DashboardPage() {
-  const { entries, isLoaded } = useBetEntries();
+  const { entries, addEntry, updateEntry, deleteEntry, isLoaded } = useBetEntries(); // Added deleteEntry, updateEntry
   const [dashboardStats, setDashboardStats] = useState<DashboardStats>(calculateStats([]));
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -56,11 +57,10 @@ export default function DashboardPage() {
     setEndDate(undefined);
   };
 
-  const handleClearFiltersClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation(); 
+  const handleClearFiltersClick = (e: React.MouseEvent<HTMLButtonElement | HTMLDivElement>) => {
+    e.stopPropagation();
     clearFilters();
   };
-
 
   if (!isLoaded || !clientMounted) {
     return (
@@ -75,22 +75,24 @@ export default function DashboardPage() {
   return (
     <>
       <Accordion type="single" collapsible className="w-full mb-8" data-ai-hint="filter accordion">
-        <AccordionItem 
-          value="date-filter" 
+        <AccordionItem
+          value="date-filter"
           className={cn(
-            "border-b", 
-            isFilterActive ? "border-accent" : "border-border" 
+            "border-b-0", // Remove default item border, handled by the div below
+             isFilterActive ? "border-accent" : "border-border"
           )}
         >
-          <div className={cn(
-              "flex items-center justify-between px-4 py-3",
-              "data-[state=open]:border-b-0"
+          <div
+            className={cn(
+              "flex items-center justify-between px-4 py-3 bg-card border rounded-t-lg",
+              "data-[state=open]:rounded-b-none data-[state=open]:border-b-0",
+              isFilterActive ? "border-accent" : "border-border"
             )}
           >
             <AccordionTrigger
               className={cn(
                 "py-0 text-base hover:no-underline flex-1 flex items-center gap-2 p-0 justify-start",
-                "data-[state=open]:border-b-0" 
+                "data-[state=open]:border-b-0"
               )}
             >
               <ListFilter className={cn("h-5 w-5", isFilterActive ? "text-accent" : "text-muted-foreground")} />
@@ -108,7 +110,12 @@ export default function DashboardPage() {
               </Button>
             )}
           </div>
-          <AccordionContent className={cn("px-4 pt-2 pb-4")}>
+          <AccordionContent
+            className={cn(
+                "px-4 pt-4 pb-4 bg-card border border-t-0 rounded-b-lg",
+                isFilterActive ? "border-accent" : "border-border"
+            )}
+          >
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Popover>
                 <PopoverTrigger asChild>
@@ -138,11 +145,10 @@ export default function DashboardPage() {
       </Accordion>
 
       <DashboardCards stats={dashboardStats} />
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 gap-8 mb-8">
         <ProfitChart entries={filteredEntries} />
       </div>
+      <EntriesTable entries={filteredEntries} onDeleteEntry={deleteEntry} onUpdateEntry={updateEntry} />
     </>
   );
 }
-
-    

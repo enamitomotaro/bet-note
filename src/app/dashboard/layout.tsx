@@ -3,10 +3,8 @@
 
 import { AppHeader } from '@/components/AppHeader';
 import type { LucideIcon } from 'lucide-react';
-import { Home, ListPlus, Brain, PlusCircle, Edit3 } from 'lucide-react';
+import { Home, Brain, PlusCircle, Edit3, ListChecks } from 'lucide-react'; // ListPlus removed, ListChecks added for consistency
 import { usePathname, useRouter } from 'next/navigation';
-import { cn } from "@/lib/utils";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React, { useState, useEffect } from 'react';
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
@@ -14,9 +12,9 @@ import { EntryForm } from '@/components/EntryForm';
 import { Button } from '@/components/ui/button';
 import type { BetEntry } from '@/lib/types';
 
+// "収支記録" (Entries) removed from navItems
 export const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard', label: 'ダッシュボード', icon: Home },
-  { href: '/dashboard/entries', label: '収支記録', icon: ListPlus },
   { href: '/dashboard/ai-predictor', label: 'AI予想', icon: Brain },
 ];
 
@@ -43,7 +41,6 @@ export default function DashboardLayout({
   };
 
   const currentNavItem = navItems.find(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
-  const pageTitle = currentNavItem ? currentNavItem.label : APP_NAME;
 
   const handleOpenAddEntryDialog = () => {
     setIsAddEntryDialogOpen(true);
@@ -57,10 +54,10 @@ export default function DashboardLayout({
 
   return (
     <div className="flex flex-col min-h-screen">
-      <AppHeader 
-        appName={APP_NAME} 
-        navItems={navItems} 
-        onOpenAddEntryDialog={handleOpenAddEntryDialog} 
+      <AppHeader
+        appName={APP_NAME}
+        navItems={navItems}
+        onOpenAddEntryDialog={handleOpenAddEntryDialog}
       />
       
       <main className="flex-grow space-y-8 container mx-auto px-4 md:px-8 py-6">
@@ -84,7 +81,7 @@ export default function DashboardLayout({
             id="add-entry-form-in-dialog"
             onAddEntry={handleAddEntrySubmit}
             onClose={() => setIsAddEntryDialogOpen(false)}
-            isInDialog={true} 
+            isInDialog={true}
           />
           <DialogFooter className="mt-6 pt-4 border-t flex items-center justify-end gap-x-2">
             <DialogClose asChild>
