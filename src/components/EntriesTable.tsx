@@ -152,9 +152,12 @@ export function EntriesTable({
   }, [entries, startDate, endDate, searchQuery, sortConfig, clientMounted, showFilterControls]);
 
   const entriesForTable = useMemo(() => {
+    // For dashboard view, if displayLimit is set, slice the entries.
+    // showFilterControls will be false for dashboard's EntriesTable instance.
     if (displayLimit && showFilterControls === false) { 
       return filteredAndSortedEntries.slice(0, displayLimit);
     }
+    // For the dedicated entries page (showFilterControls === true), show all filtered/sorted entries.
     return filteredAndSortedEntries;
   }, [filteredAndSortedEntries, displayLimit, showFilterControls]);
 
@@ -165,7 +168,7 @@ export function EntriesTable({
     totalProfitLoss,
     overallRecoveryRateForFooter,
   } = useMemo(() => {
-    const sourceForTotals = filteredAndSortedEntries;
+    const sourceForTotals = filteredAndSortedEntries; // Use all filtered entries for totals
 
     if (!clientMounted || sourceForTotals.length === 0) {
       return {
@@ -486,23 +489,24 @@ export function EntriesTable({
       </Card>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogHeader>
-          <UiAlertDialogTitle>本当に削除しますか？</UiAlertDialogTitle>
-          <AlertDialogDescription>
-            この操作は元に戻せません。エントリーが完全に削除されます。
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>キャンセル</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={confirmDeleteEntry}
-            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-          >
-            削除する
-          </AlertDialogAction>
-        </AlertDialogFooter>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <UiAlertDialogTitle>本当に削除しますか？</UiAlertDialogTitle>
+            <AlertDialogDescription>
+              この操作は元に戻せません。エントリーが完全に削除されます。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteEntry}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </>
   );
 }
-
