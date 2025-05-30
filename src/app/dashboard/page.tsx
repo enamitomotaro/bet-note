@@ -3,63 +3,71 @@
 
 import { DashboardCards } from '@/components/DashboardCards';
 import { ProfitChart } from '@/components/ProfitChart';
-import { EntriesTable } from '@/components/EntriesTable'; // Added
+import { EntriesTable } from '@/components/EntriesTable';
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { calculateStats } from '@/lib/calculations';
 import { useEffect, useState, useMemo } from 'react';
 import type { DashboardStats } from '@/lib/types';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, FilterX, ListFilter } from 'lucide-react';
-import { format, parseISO, isValid } from 'date-fns';
-import { cn } from "@/lib/utils";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Settings, ArrowUp, ArrowDown } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import useLocalStorage from '@/hooks/useLocalStorage';
+import type { ComponentType } from 'react';
+
+type CardId = 'stats' | 'chart' | 'table';
+
+const CARD_ORDER_KEY = 'dashboardCardOrder_v1'; // Added _v1 for potential future structure changes
+
+const cardDisplayNames: Record<CardId, string> = {
+  stats: "統計概要",
+  chart: "損益グラフ",
+  table: "エントリー履歴",
+};
+
+interface CardComponentProps {
+  stats?: DashboardStats; // For DashboardCards
+  entries?: any[]; // For ProfitChart and EntriesTable, use specific types if possible
+  onDeleteEntry?: (id: string) => void; // For EntriesTable
+  onUpdateEntry?: (id: string, data: any) => void; // For EntriesTable
+}
+
+const cardComponentsMap: Record<CardId, ComponentType<CardComponentProps>> = {
+  stats: DashboardCards,
+  chart: ProfitChart,
+  table: EntriesTable,
+};
+
 
 export default function DashboardPage() {
-  const { entries, addEntry, updateEntry, deleteEntry, isLoaded } = useBetEntries(); // Added deleteEntry, updateEntry
+  const { entries, deleteEntry, updateEntry, isLoaded } = useBetEntries();
   const [dashboardStats, setDashboardStats] = useState<DashboardStats>(calculateStats([]));
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [clientMounted, setClientMounted] = useState(false);
+
+  const [cardOrder, setCardOrder] = useLocalStorage<CardId[]>(
+    CARD_ORDER_KEY,
+    ['stats', 'chart', 'table']
+  );
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 
   useEffect(() => {
     setClientMounted(true);
   }, []);
 
-  const filteredEntries = useMemo(() => {
-    if (!clientMounted || !isLoaded) return [];
-    return entries.filter(entry => {
-      const entryDate = parseISO(entry.date);
-      if (!isValid(entryDate)) return false;
-      const start = startDate ? new Date(startDate.setHours(0, 0, 0, 0)) : null;
-      const end = endDate ? new Date(endDate.setHours(23, 59, 59, 999)) : null;
-
-      if (start && entryDate < start) return false;
-      if (end && entryDate > end) return false;
-      return true;
-    });
-  }, [entries, startDate, endDate, clientMounted, isLoaded]);
-
   useEffect(() => {
     if (isLoaded) {
-      setDashboardStats(calculateStats(filteredEntries));
+      // No filtering, use all entries
+      setDashboardStats(calculateStats(entries));
     }
-  }, [filteredEntries, isLoaded]);
+  }, [entries, isLoaded]);
 
-  const clearFilters = () => {
-    setStartDate(undefined);
-    setEndDate(undefined);
-  };
-
-  const handleClearFiltersClick = (e: React.MouseEvent<HTMLButtonElement | HTMLDivElement>) => {
-    e.stopPropagation();
-    clearFilters();
+  const moveCard = (index: number, direction: 'up' | 'down') => {
+    const newOrder = [...cardOrder];
+    if (direction === 'up' && index > 0) {
+      [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+    } else if (direction === 'down' && index < newOrder.length - 1) {
+      [newOrder[index + 1], newOrder[index]] = [newOrder[index], newOrder[index + 1]];
+    }
+    setCardOrder(newOrder);
   };
 
   if (!isLoaded || !clientMounted) {
@@ -69,86 +77,78 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  const isFilterActive = startDate || endDate;
+  
+  const componentsToRender = {
+    stats: { component: DashboardCards, props: { stats: dashboardStats } },
+    chart: { component: ProfitChart, props: { entries } },
+    table: { component: EntriesTable, props: { entries, onDeleteEntry: deleteEntry, onUpdateEntry: updateEntry } },
+  };
 
   return (
     <>
-      <Accordion type="single" collapsible className="w-full mb-8" data-ai-hint="filter accordion">
-        <AccordionItem
-          value="date-filter"
-          className={cn(
-            "border-b-0", // Remove default item border, handled by the div below
-             isFilterActive ? "border-accent" : "border-border"
-          )}
+      <div className="flex justify-end mb-4">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          onClick={() => setIsSettingsDialogOpen(true)}
+          data-ai-hint="layout settings gears"
+          aria-label="レイアウト設定"
         >
-          <div
-            className={cn(
-              "flex items-center justify-between px-4 py-3 bg-card border rounded-t-lg",
-              "data-[state=open]:rounded-b-none data-[state=open]:border-b-0",
-              isFilterActive ? "border-accent" : "border-border"
-            )}
-          >
-            <AccordionTrigger
-              className={cn(
-                "py-0 text-base hover:no-underline flex-1 flex items-center gap-2 p-0 justify-start",
-                "data-[state=open]:border-b-0"
-              )}
-            >
-              <ListFilter className={cn("h-5 w-5", isFilterActive ? "text-accent" : "text-muted-foreground")} />
-              <span className="text-foreground">期間フィルター</span>
-            </AccordionTrigger>
-            {isFilterActive && (
-              <Button
-                variant="ghost"
-                onClick={handleClearFiltersClick}
-                className="text-accent hover:bg-accent hover:text-accent-foreground h-auto p-1 ml-2 shrink-0"
-                aria-label="フィルターを解除"
-              >
-                <FilterX className="mr-1 h-4 w-4" />
-                解除
-              </Button>
-            )}
-          </div>
-          <AccordionContent
-            className={cn(
-                "px-4 pt-4 pb-4 bg-card border border-t-0 rounded-b-lg",
-                isFilterActive ? "border-accent" : "border-border"
-            )}
-          >
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : <span>開始日</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
-                </PopoverContent>
-              </Popover>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : <span>終了日</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-
-      <DashboardCards stats={dashboardStats} />
-      <div className="grid grid-cols-1 gap-8 mb-8">
-        <ProfitChart entries={filteredEntries} />
+          <Settings className="h-5 w-5" />
+        </Button>
       </div>
-      <EntriesTable entries={filteredEntries} onDeleteEntry={deleteEntry} onUpdateEntry={updateEntry} />
+
+      <div className="space-y-8">
+        {cardOrder.map((cardId) => {
+          const Card = componentsToRender[cardId].component as ComponentType<any>;
+          const props = componentsToRender[cardId].props;
+          return (
+            <div key={cardId}>
+              <Card {...props} />
+            </div>
+          );
+        })}
+      </div>
+
+      <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-card">
+          <DialogHeader>
+            <DialogTitle>レイアウト設定</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-4">
+            {cardOrder.map((cardId, index) => (
+              <div key={cardId} className="flex items-center justify-between p-3 border rounded-md bg-background">
+                <span className="font-medium">{cardDisplayNames[cardId]}</span>
+                <div className="space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => moveCard(index, 'up')}
+                    disabled={index === 0}
+                    aria-label={`${cardDisplayNames[cardId]}を上に移動`}
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => moveCard(index, 'down')}
+                    disabled={index === cardOrder.length - 1}
+                    aria-label={`${cardDisplayNames[cardId]}を下に移動`}
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+           <DialogClose asChild>
+            <Button type="button" variant="outline" className="mt-4 w-full">
+              閉じる
+            </Button>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
