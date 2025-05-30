@@ -21,7 +21,7 @@ import { ja } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercentage } from '@/lib/calculations';
 import { Card, CardContent, CardFooter as UiCardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter as UiDialogFooter, DialogHeader, DialogTitle as UiDialogTitle } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
   AlertDialog,
@@ -29,6 +29,7 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -359,7 +360,7 @@ export function EntriesTable({
           {filterControlElements}
         </CardHeader>
 
-        <CardContent className={cn("pt-6")}>
+        <CardContent className={cn("pt-6", (displayLimit && entriesForTable.length > 0 && showFilterControls === false) ? "pb-0" : "")}>
           {(entriesForTable).length === 0 && !isDateFilterActive && showFilterControls && entries.length === 0 ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : entriesForTable.length === 0 && (isDateFilterActive || searchQuery) && showFilterControls ? (
@@ -461,7 +462,7 @@ export function EntriesTable({
                 onClose={handleCloseEditDialog}
                 isInDialog={true}
               />
-              <DialogFooter className="mt-6 pt-4 border-t flex items-center justify-between">
+              <UiDialogFooter className="mt-6 pt-4 border-t flex items-center justify-between">
                  <Button
                     variant="destructive"
                     onClick={() => requestDeleteEntry(editingEntry.id)}
@@ -478,31 +479,30 @@ export function EntriesTable({
                   <Edit3 className="mr-2 h-4 w-4" />
                   更新
                 </Button>
-              </DialogFooter>
+              </UiDialogFooter>
             </DialogContent>
           </Dialog>
         )}
       </Card>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <UiAlertDialogTitle>本当に削除しますか？</UiAlertDialogTitle>
-            <AlertDialogDescription>
-              この操作は元に戻せません。エントリーが完全に削除されます。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>キャンセル</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteEntry}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            >
-              削除する
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        <AlertDialogHeader>
+          <UiAlertDialogTitle>本当に削除しますか？</UiAlertDialogTitle>
+          <AlertDialogDescription>
+            この操作は元に戻せません。エントリーが完全に削除されます。
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>キャンセル</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={confirmDeleteEntry}
+            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+          >
+            削除する
+          </AlertDialogAction>
+        </AlertDialogFooter>
       </AlertDialog>
     </>
   );
 }
+
