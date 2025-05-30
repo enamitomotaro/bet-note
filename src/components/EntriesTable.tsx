@@ -12,10 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
-import { Pencil, Percent, Edit3, Trash2, ListChecks } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { Pencil, Percent, Edit3, Trash2, ListChecks, FilterX } from 'lucide-react';
+import { format, parseISO, isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { formatCurrency, formatPercentage } from '@/lib/calculations';
+import { formatCurrency, formatPercentage, calculateAverageRecoveryRate } from '@/lib/calculations';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle as UiDialogTitle, DialogClose } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
@@ -25,10 +25,14 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter as UiAlertDialogFooter,
+  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle as UiAlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon, ListFilter } from "lucide-react";
+
 
 interface EntriesTableProps {
   entries: BetEntry[];
@@ -77,6 +81,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
     }
   };
 
+
   return (
     <>
       <Card data-ai-hint="table spreadsheet">
@@ -87,7 +92,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
           </CardTitle>
         </CardHeader>
         
-        <CardContent className='pt-6'>
+        <CardContent className={cn('pt-0')}>
           {sortedEntries.length === 0 ? (
             <p className="text-muted-foreground py-4 text-center">表示するエントリーがありません。</p>
           ) : (
@@ -101,12 +106,15 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                     <TableHead className="text-right">払戻金</TableHead>
                     <TableHead className="text-right">損益</TableHead>
                     <TableHead className="text-right">回収率</TableHead>
-                    <TableHead className="text-center">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedEntries.map((entry) => (
-                    <TableRow key={entry.id}>
+                    <TableRow 
+                      key={entry.id} 
+                      onClick={() => handleEdit(entry)}
+                      className="cursor-pointer hover:bg-muted/50"
+                    >
                       <TableCell>{format(parseISO(entry.date), "yyyy/MM/dd")}</TableCell>
                       <TableCell>{entry.raceName || "-"}</TableCell>
                       <TableCell className="text-right">{formatCurrency(entry.betAmount)}</TableCell>
@@ -115,17 +123,6 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                         {formatCurrency(entry.profitLoss)}
                       </TableCell>
                       <TableCell className="text-right">{formatPercentage(entry.roi)}</TableCell>
-                      <TableCell className="text-center">
-                         <Button 
-                           variant="ghost" 
-                           size="icon" 
-                           onClick={() => handleEdit(entry)} 
-                           aria-label="編集" 
-                           className="hover:bg-accent hover:text-accent-foreground"
-                          >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -148,7 +145,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               </DialogHeader>
               <EntryForm
                 isEditMode
-                id="edit-entry-form"
+                id="edit-entry-form-in-dialog"
                 initialData={editingEntry}
                 onUpdateEntry={handleUpdateEntryInDialog}
                 onClose={handleCloseEditDialog}
@@ -165,7 +162,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
                 </Button>
                 <Button 
                     type="submit" 
-                    form="edit-entry-form" 
+                    form="edit-entry-form-in-dialog" 
                     className="bg-accent hover:bg-accent/90 text-accent-foreground min-w-[100px]"
                 >
                   <Edit3 className="mr-2 h-4 w-4" />
@@ -185,7 +182,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
               この操作は元に戻せません。エントリーが完全に削除されます。
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <UiAlertDialogFooter>
+          <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>キャンセル</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteEntry}
@@ -193,7 +190,7 @@ export function EntriesTable({ entries, onDeleteEntry, onUpdateEntry }: EntriesT
             >
               削除する
             </AlertDialogAction>
-          </UiAlertDialogFooter>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
