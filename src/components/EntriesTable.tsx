@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect, type ReactNode } from 'react';
@@ -34,7 +35,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Label } from "@/components/ui/label"; // Added for sort popover
+import { Label } from "@/components/ui/label";
 
 interface EntriesTableProps {
   entries: BetEntry[];
@@ -45,7 +46,7 @@ interface EntriesTableProps {
   showFilterControls?: boolean;
 }
 
-type SortableColumn = keyof BetEntry | 'profitLoss' | 'roi'; // Make sure these match BetEntry fields used for sorting
+type SortableColumn = keyof BetEntry | 'profitLoss' | 'roi';
 type SortDirection = 'asc' | 'desc';
 
 interface SortConfig {
@@ -76,7 +77,6 @@ export function EntriesTable({
   const [entryToDeleteId, setEntryToDeleteId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // States for filtering, sorting, searching
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState('');
@@ -99,7 +99,7 @@ export function EntriesTable({
       }
       return { key, direction: 'asc' };
     });
-    setIsSortPopoverOpen(false); // Close popover after sorting
+    setIsSortPopoverOpen(false); 
   };
   
   const filteredAndSortedEntries = useMemo(() => {
@@ -107,7 +107,6 @@ export function EntriesTable({
 
     let processedEntries = [...entries];
 
-    // 1. Date Filtering (only if showFilterControls is true)
     if (showFilterControls) {
       if (startDate) {
         const filterStart = startOfDay(startDate);
@@ -125,14 +124,12 @@ export function EntriesTable({
       }
     }
 
-    // 2. Search Filtering
     if (searchQuery) {
       processedEntries = processedEntries.filter(entry =>
         entry.raceName?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // 3. Sorting
     if (sortConfig.key) {
       processedEntries.sort((a, b) => {
         const aValue = a[sortConfig.key as keyof BetEntry];
@@ -146,8 +143,6 @@ export function EntriesTable({
         } else if (sortConfig.key === 'date') {
            comparison = parseISO(a.date).getTime() - parseISO(b.date).getTime();
         }
-        // Add more type-specific comparisons if needed, e.g., for profitLoss or roi if they are not direct BetEntry keys
-
         return sortConfig.direction === 'asc' ? comparison : -comparison;
       });
     }
@@ -156,11 +151,11 @@ export function EntriesTable({
   }, [entries, startDate, endDate, searchQuery, sortConfig, clientMounted, showFilterControls]);
 
   const entriesForTable = useMemo(() => {
-    if (displayLimit) {
+    if (displayLimit && showFilterControls === false) { // Apply displayLimit only when on dashboard
       return filteredAndSortedEntries.slice(0, displayLimit);
     }
     return filteredAndSortedEntries;
-  }, [filteredAndSortedEntries, displayLimit]);
+  }, [filteredAndSortedEntries, displayLimit, showFilterControls]);
 
 
   const averageRecoveryRate = useMemo(() => {
@@ -210,8 +205,9 @@ export function EntriesTable({
       handleCloseEditDialog();
     }
   };
+  
+  const showViewAllButton = viewAllLinkPath && displayLimit && filteredAndSortedEntries.length > displayLimit && showFilterControls === false;
 
-  const showViewAllButton = viewAllLinkPath && displayLimit && filteredAndSortedEntries.length > displayLimit;
 
   let filterControlElements: ReactNode = null;
   if (showFilterControls) {
@@ -219,7 +215,12 @@ export function EntriesTable({
       <div className="flex items-center gap-1 ml-auto">
         <Popover open={isSearchPopoverOpen} onOpenChange={setIsSearchPopoverOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-accent" aria-label="検索">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:text-accent hover:bg-accent/20" 
+              aria-label="検索"
+            >
               <SearchIcon className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
@@ -245,7 +246,12 @@ export function EntriesTable({
 
         <Popover open={isSortPopoverOpen} onOpenChange={setIsSortPopoverOpen}>
             <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-accent" aria-label="並べ替え">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-muted-foreground hover:text-accent hover:bg-accent/20" 
+                  aria-label="並べ替え"
+                >
                 <ArrowUpDown className="h-4 w-4" />
                 </Button>
             </PopoverTrigger>
@@ -275,7 +281,10 @@ export function EntriesTable({
             <Button
               variant="ghost"
               size="icon"
-              className={cn("hover:text-accent", isDateFilterActive ? "text-accent" : "text-muted-foreground")}
+              className={cn(
+                "hover:bg-accent/20", 
+                isDateFilterActive ? "text-accent hover:text-accent" : "text-muted-foreground hover:text-accent"
+              )}
               aria-label="期間フィルター"
             >
               <FilterIcon className="h-4 w-4" />
@@ -337,7 +346,9 @@ export function EntriesTable({
           ) : entriesForTable.length === 0 && !showFilterControls && entries.length === 0 ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : (
-            <ScrollArea className={cn(displayLimit && entriesForTable.length >= displayLimit ? `h-[calc(6*2.5rem+1rem)]` : '')}>
+            <ScrollArea 
+                className={cn((displayLimit && entriesForTable.length >= displayLimit && showFilterControls === false) ? 'h-[calc(5*3.5rem+2.25rem)]' : '')}
+            >
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -345,8 +356,11 @@ export function EntriesTable({
                       {sortableColumns.map(col => (
                         <TableHead 
                           key={col.key} 
-                          className={cn("cursor-pointer hover:bg-muted/50", col.key === 'betAmount' || col.key === 'payoutAmount' || col.key === 'profitLoss' || col.key === 'roi' ? 'text-right' : '')}
-                          onClick={() => showFilterControls && handleSort(col.key)} // Only allow sort on entries page
+                          className={cn(
+                            "cursor-pointer hover:bg-muted/50 whitespace-nowrap", 
+                            col.key === 'betAmount' || col.key === 'payoutAmount' || col.key === 'profitLoss' || col.key === 'roi' ? 'text-right' : ''
+                          )}
+                          onClick={() => showFilterControls && handleSort(col.key)}
                         >
                           <div className={cn("flex items-center", col.key === 'betAmount' || col.key === 'payoutAmount' || col.key === 'profitLoss' || col.key === 'roi' ? 'justify-end' : '')}>
                             {col.label}
@@ -363,16 +377,16 @@ export function EntriesTable({
                       <TableRow
                         key={entry.id}
                         onClick={() => handleEdit(entry)}
-                        className="cursor-pointer hover:bg-muted/50"
+                        className="cursor-pointer hover:bg-muted/50 h-[3.5rem]"
                       >
                         <TableCell>{isValid(parseISO(entry.date)) ? format(parseISO(entry.date), "yyyy/MM/dd") : '-'}</TableCell>
-                        <TableCell>{entry.raceName || "-"}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(entry.betAmount)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(entry.payoutAmount)}</TableCell>
-                        <TableCell className={`text-right font-medium ${entry.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <TableCell className="whitespace-nowrap">{entry.raceName || "-"}</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">{formatCurrency(entry.betAmount)}</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">{formatCurrency(entry.payoutAmount)}</TableCell>
+                        <TableCell className={`text-right font-medium whitespace-nowrap ${entry.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatCurrency(entry.profitLoss)}
                         </TableCell>
-                        <TableCell className="text-right">{formatPercentage(entry.roi)}</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">{formatPercentage(entry.roi)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -381,9 +395,9 @@ export function EntriesTable({
             </ScrollArea>
           )}
         </CardContent>
-        {showViewAllButton && viewAllLinkPath && (
+        {showViewAllButton && (
           <CardFooter className="justify-center pt-4 border-t">
-            <Link href={viewAllLinkPath} passHref legacyBehavior>
+            <Link href={viewAllLinkPath!} passHref legacyBehavior>
               <Button variant="outline" className="w-full sm:w-auto">
                 全履歴を見る
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -457,4 +471,3 @@ export function EntriesTable({
     </>
   );
 }
-
