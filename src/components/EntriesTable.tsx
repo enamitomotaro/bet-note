@@ -426,7 +426,7 @@ export function EntriesTable({
                     ))}
                   </TableBody>
                   {filteredAndSortedEntries.length > 0 && ( 
-                     <TableFooter className="bg-transparent border-t-0">
+                     <TableFooter className="bg-transparent border-t">
                         <TableRow className="h-[3rem]">
                           <TableCell colSpan={2} className="font-medium text-muted-foreground">合計</TableCell>
                           <TableCell className="text-right font-medium">{formatCurrency(totalBetAmount)}</TableCell>
@@ -444,7 +444,7 @@ export function EntriesTable({
           )}
         </CardContent>
         {showViewAllButton && (
-          <UiCardFooter className="justify-center pt-4 border-t">
+          <UiCardFooter className="justify-center pt-4">
             <Link href={viewAllLinkPath!} passHref legacyBehavior>
               <Button variant="outline" className="w-full sm:w-auto">
                 全履歴を見る
