@@ -3,7 +3,7 @@
 
 import { AppHeader } from '@/components/AppHeader';
 import type { LucideIcon } from 'lucide-react';
-import { Home, Brain, PlusCircle, ListChecks } from 'lucide-react';
+import { Home, PlusCircle, ListChecks } from 'lucide-react'; // Removed Brain icon
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useBetEntries } from '@/hooks/useBetEntries';
@@ -14,8 +14,8 @@ import type { BetEntry } from '@/lib/types';
 
 export const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard', label: 'ダッシュボード', icon: Home },
-  { href: '/dashboard/entries', label: 'エントリー履歴', icon: ListChecks }, // 文言変更
-  { href: '/dashboard/ai-predictor', label: 'AI予想', icon: Brain },
+  { href: '/dashboard/entries', label: 'エントリー履歴', icon: ListChecks },
+  // { href: '/dashboard/ai-predictor', label: 'AI予想', icon: Brain }, // Removed AI Predictor nav item
 ];
 
 const APP_NAME = "BetNote";

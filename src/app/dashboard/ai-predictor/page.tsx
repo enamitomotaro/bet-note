@@ -1,11 +1,12 @@
-"use client";
-
-import { AiPredictor } from '@/components/AiPredictor';
+// This page was removed as the AI Predictor feature has been deprecated.
+// It might be automatically removed in a future cleanup.
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AiPredictorPage() {
-  return (
-    <div>
-      <AiPredictor />
-    </div>
-  );
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/dashboard');
+  }, [router]);
+  return null;
 }
