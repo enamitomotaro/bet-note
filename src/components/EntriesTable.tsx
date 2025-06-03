@@ -20,8 +20,8 @@ import { format, parseISO, isValid, startOfDay } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatPercentage } from '@/lib/calculations';
-import { Card, CardContent, CardFooter as UiCardFooter, CardHeader, CardTitle as UiCardTitle } from './ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle as UiDialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle as UiCardTitle } from './ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle as UiDialogTitle, DialogFooter as UiDialogFooter, DialogClose } from "@/components/ui/dialog";
 import { EntryForm } from './EntryForm';
 import {
   AlertDialog,
@@ -130,32 +130,32 @@ export function EntriesTable({
           entry.raceName?.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }
+    } // Always sort, even if filters are not shown (e.g. on dashboard, it should respect initial sort)
+    
+    if (sortConfig.key) {
+      processedEntries.sort((a, b) => {
+        let aValue = a[sortConfig.key as keyof BetEntry];
+        let bValue = b[sortConfig.key as keyof BetEntry];
 
-      if (sortConfig.key) {
-        processedEntries.sort((a, b) => {
-          let aValue = a[sortConfig.key as keyof BetEntry];
-          let bValue = b[sortConfig.key as keyof BetEntry];
-
-          if (sortConfig.key === 'profitLoss') {
-              aValue = a.payoutAmount - a.betAmount;
-              bValue = b.payoutAmount - b.betAmount;
-          } else if (sortConfig.key === 'roi') {
-              aValue = a.betAmount > 0 ? (a.payoutAmount / a.betAmount) * 100 : 0;
-              bValue = b.betAmount > 0 ? (b.payoutAmount / b.betAmount) * 100 : 0;
-          }
+        if (sortConfig.key === 'profitLoss') {
+            aValue = a.payoutAmount - a.betAmount;
+            bValue = b.payoutAmount - b.betAmount;
+        } else if (sortConfig.key === 'roi') {
+            aValue = a.betAmount > 0 ? (a.payoutAmount / a.betAmount) * 100 : 0;
+            bValue = b.betAmount > 0 ? (b.payoutAmount / b.betAmount) * 100 : 0;
+        }
 
 
-          let comparison = 0;
-          if (typeof aValue === 'string' && typeof bValue === 'string') {
-            comparison = aValue.localeCompare(bValue);
-          } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-            comparison = aValue - bValue;
-          } else if (sortConfig.key === 'date') {
-             comparison = parseISO(a.date).getTime() - parseISO(b.date).getTime();
-          }
-          return sortConfig.direction === 'asc' ? comparison : -comparison;
-        });
-      }
+        let comparison = 0;
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          comparison = aValue.localeCompare(bValue);
+        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+          comparison = aValue - bValue;
+        } else if (sortConfig.key === 'date') {
+           comparison = parseISO(a.date).getTime() - parseISO(b.date).getTime();
+        }
+        return sortConfig.direction === 'asc' ? comparison : -comparison;
+      });
     }
     
     return processedEntries;
@@ -369,10 +369,19 @@ export function EntriesTable({
             <ListChecks className="h-6 w-6 text-muted-foreground" />
             エントリー履歴
           </UiCardTitle>
-          {filterControlElements}
+          {showFilterControls ? (
+            filterControlElements
+          ) : showViewAllButton ? (
+            <Link href={viewAllLinkPath!} passHref legacyBehavior>
+              <Button variant="outline" size="sm" className="ml-auto">
+                全履歴を見る
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          ) : null}
         </CardHeader>
 
-        <CardContent className={cn("pt-6", (displayLimit && entriesForTable.length > 0 && showFilterControls === false) ? "pb-0" : "")}>
+        <CardContent className={cn("pt-6", (displayLimit && entriesForTable.length > 0 && showFilterControls === false) ? "" : "")}>
           {(entriesForTable).length === 0 && !isDateFilterActive && showFilterControls && entries.length === 0 ? (
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : entriesForTable.length === 0 && (isDateFilterActive || searchQuery) && showFilterControls ? (
@@ -381,7 +390,7 @@ export function EntriesTable({
              <p className="text-muted-foreground py-4 text-center">記録されたエントリーはありません。</p>
           ) : (
             <ScrollArea 
-                className={cn((displayLimit && entriesForTable.length >= displayLimit && showFilterControls === false) ? 'max-h-[calc(5*3.5rem+2.25rem+3rem)]' : '')} 
+                className={cn((displayLimit && entriesForTable.length >= displayLimit && showFilterControls === false) ? 'max-h-[calc(5*3.5rem+3rem+3rem)]' : '')} 
             >
               <div className="overflow-x-auto">
                 <Table>
@@ -443,16 +452,7 @@ export function EntriesTable({
             </ScrollArea>
           )}
         </CardContent>
-        {showViewAllButton && (
-          <UiCardFooter className="justify-center pt-4">
-            <Link href={viewAllLinkPath!} passHref legacyBehavior>
-              <Button variant="outline" className="w-full sm:w-auto">
-                全履歴を見る
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </UiCardFooter>
-        )}
+        {/* Removed UiCardFooter that previously held the "View All" button */}
 
         {editingEntry && (
           <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => {
@@ -521,4 +521,3 @@ export function EntriesTable({
     </>
   );
 }
-
