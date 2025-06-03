@@ -1,7 +1,7 @@
 
 "use client";
 import Link from 'next/link';
-import { Ticket, Menu, PlusCircle } from 'lucide-react';
+import { Ticket, Menu, PlusCircle, Settings } from 'lucide-react'; // Added Settings
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { LucideIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useDashboardDialog } from '@/contexts/DashboardDialogContext'; // Added
 
 interface NavItem {
   href: string;
@@ -31,6 +32,7 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
   const isMobile = useIsMobile();
   const pathname = usePathname();
   const router = useRouter();
+  const { setIsSettingsDialogOpen } = useDashboardDialog(); // Added
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
@@ -38,6 +40,18 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
     }
     return pathname.startsWith(href);
   };
+
+  const handleOpenSettingsDialog = () => {
+    if (pathname === '/dashboard') { // Only open if on dashboard page
+        setIsSettingsDialogOpen(true);
+    } else {
+        router.push('/dashboard', { scroll: false });
+        // Consider opening dialog after navigation completes,
+        // possibly with a small delay or a flag in route state.
+        // For now, direct navigation is simpler.
+    }
+  };
+
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 px-4 md:px-8 border-b border-border">
@@ -58,7 +72,7 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
                 className={cn(
                   "text-sm font-medium transition-colors px-3 py-2 rounded-md",
                   isActive(item.href)
-                    ? "bg-muted text-primary" 
+                    ? "bg-muted text-primary"
                     : "text-muted-foreground hover:bg-muted/50 hover:text-primary"
                 )}
               >
@@ -67,19 +81,33 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
             ))}
           </nav>
         )}
-        
+
         {/* Right: Action Buttons / Mobile Menu */}
         <div className="flex items-center gap-2">
           {!isMobile && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onOpenAddEntryDialog}
-              className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              新規記録
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onOpenAddEntryDialog}
+                className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+                data-ai-hint="add item plus"
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                新規記録
+              </Button>
+              {pathname === '/dashboard' && ( // Only show settings button on dashboard
+                 <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleOpenSettingsDialog}
+                    data-ai-hint="layout settings gears"
+                    aria-label="レイアウト・フィルター設定"
+                >
+                    <Settings className="h-5 w-5" />
+                </Button>
+              )}
+            </>
           )}
 
           {isMobile ? (
@@ -109,14 +137,17 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
                   <PlusCircle className="mr-2 h-4 w-4" />
                   <span>新規記録</span>
                 </DropdownMenuItem>
+                {/* Conditionally add Settings to mobile menu only if on dashboard */}
+                {pathname === '/dashboard' && (
+                    <DropdownMenuItem onClick={handleOpenSettingsDialog} className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>設定</span>
+                    </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            // Placeholder for desktop right if no other actions exist to balance layout.
-            // If the "新規記録" button is the only item, this div might not be strictly necessary,
-            // as the nav is centered by mx-auto.
-            // <div className="w-7 h-7 md:w-auto"></div> 
-            null 
+             pathname !== '/dashboard' && <div className="w-[40px] h-[40px]"></div> // Placeholder to balance layout if settings button not shown
           )}
         </div>
       </div>

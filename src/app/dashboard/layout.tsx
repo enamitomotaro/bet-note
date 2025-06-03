@@ -3,7 +3,7 @@
 
 import { AppHeader } from '@/components/AppHeader';
 import type { LucideIcon } from 'lucide-react';
-import { Home, PlusCircle, ListChecks } from 'lucide-react'; // Removed Brain icon
+import { Home, ListChecks } from 'lucide-react'; // Removed Brain icon, PlusCircle is handled internally or passed
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useBetEntries } from '@/hooks/useBetEntries';
@@ -11,11 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { EntryForm } from '@/components/EntryForm';
 import { Button } from '@/components/ui/button';
 import type { BetEntry } from '@/lib/types';
+import { PlusCircle } from 'lucide-react'; // Keep PlusCircle for dialog title
 
 export const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard', label: 'ダッシュボード', icon: Home },
   { href: '/dashboard/entries', label: 'エントリー履歴', icon: ListChecks },
-  // { href: '/dashboard/ai-predictor', label: 'AI予想', icon: Brain }, // Removed AI Predictor nav item
 ];
 
 const APP_NAME = "BetNote";
@@ -26,15 +26,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [clientMounted, setClientMounted] = useState(false);
+  // const router = useRouter(); // Not used directly here anymore for nav
+  // const [clientMounted, setClientMounted] = useState(false); // Not strictly needed here for this component's logic
 
   const { addEntry } = useBetEntries();
   const [isAddEntryDialogOpen, setIsAddEntryDialogOpen] = useState(false);
 
-  useEffect(() => {
-    setClientMounted(true);
-  }, []);
+  // useEffect(() => {
+  //   setClientMounted(true);
+  // }, []); // Not strictly needed here
 
   const handleOpenAddEntryDialog = () => {
     setIsAddEntryDialogOpen(true);
@@ -51,8 +51,9 @@ export default function DashboardLayout({
         appName={APP_NAME}
         navItems={navItems}
         onOpenAddEntryDialog={handleOpenAddEntryDialog}
+        // onOpenSettingsDialog is now handled via context by AppHeader itself
       />
-      
+
       <main className="flex-grow space-y-8 container mx-auto px-4 md:px-8 py-6">
         {children}
       </main>

@@ -16,8 +16,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
+import { DashboardDialogProvider, useDashboardDialog } from '@/contexts/DashboardDialogContext';
 
-type CardId = 'stats' | 'chart' | 'table';
+export type CardId = 'stats' | 'chart' | 'table';
 
 const CARD_ORDER_KEY = 'dashboardCardOrder_v2';
 
@@ -36,51 +37,48 @@ interface CardComponentProps {
   showFilterControls?: boolean;
 }
 
-export default function DashboardPage() {
+function DashboardPageContent() {
   const { entries: allEntries, deleteEntry, updateEntry, isLoaded } = useBetEntries();
   const [clientMounted, setClientMounted] = useState(false);
+  const { isSettingsDialogOpen, setIsSettingsDialogOpen } = useDashboardDialog();
 
-  // Actual states for dashboard display and local storage
   const [cardOrder, setCardOrder] = useLocalStorage<CardId[]>(
     CARD_ORDER_KEY,
     ['stats', 'chart', 'table']
   );
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-
-  // Temporary states for dialog editing
-  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [startDate, setStartDate] = useLocalStorage<Date | undefined>('dashboardStartDate_v1', undefined);
+  const [endDate, setEndDate] = useLocalStorage<Date | undefined>('dashboardEndDate_v1', undefined);
+  
+  // Temporary states for dialog editing - these are reset when dialog opens
   const [tempCardOrder, setTempCardOrder] = useState<CardId[]>(cardOrder);
   const [tempStartDate, setTempStartDate] = useState<Date | undefined>(startDate);
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(endDate);
 
-
   useEffect(() => {
     setClientMounted(true);
   }, []);
-
-  // Initialize temporary states when dialog opens
+  
   useEffect(() => {
     if (isSettingsDialogOpen) {
       setTempCardOrder([...cardOrder]);
-      setTempStartDate(startDate);
-      setTempEndDate(endDate);
+      // Ensure date objects are properly recreated from stored strings if necessary
+      setTempStartDate(startDate ? new Date(startDate) : undefined);
+      setTempEndDate(endDate ? new Date(endDate) : undefined);
     }
   }, [isSettingsDialogOpen, cardOrder, startDate, endDate]);
-
 
   const filteredEntries = useMemo(() => {
     if (!isLoaded || !clientMounted) return [];
     let tempEntries = [...allEntries];
     if (startDate) {
-      const filterStart = startOfDay(startDate);
+      const filterStart = startOfDay(new Date(startDate)); // Ensure Date object
       tempEntries = tempEntries.filter(entry => {
         const entryDate = startOfDay(parseISO(entry.date));
         return entryDate >= filterStart;
       });
     }
     if (endDate) {
-      const filterEnd = startOfDay(endDate);
+      const filterEnd = startOfDay(new Date(endDate)); // Ensure Date object
       tempEntries = tempEntries.filter(entry => {
         const entryDate = startOfDay(parseISO(entry.date));
         return entryDate <= filterEnd;
@@ -113,7 +111,6 @@ export default function DashboardPage() {
 
   const isTempFilterActive = tempStartDate || tempEndDate;
 
-
   if (!isLoaded || !clientMounted) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -140,18 +137,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setIsSettingsDialogOpen(true)}
-          data-ai-hint="layout settings gears"
-          aria-label="レイアウト・フィルター設定"
-        >
-          <Settings className="h-5 w-5" />
-        </Button>
-      </div>
-
+      {/* Settings button removed from here, will be in AppHeader */}
       <div className="space-y-8">
         {cardOrder.map((cardId) => {
           const CardComponent = componentsToRender[cardId].component as ComponentType<any>;
@@ -279,5 +265,13 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <DashboardDialogProvider>
+      <DashboardPageContent />
+    </DashboardDialogProvider>
   );
 }
