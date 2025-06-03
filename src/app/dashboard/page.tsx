@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
-import { DashboardDialogProvider, useDashboardDialog } from '@/contexts/DashboardDialogContext';
+import { useDashboardDialog } from '@/contexts/DashboardDialogContext'; // No longer need DashboardDialogProvider here
 
 export type CardId = 'stats' | 'chart' | 'table';
 
@@ -49,7 +49,6 @@ function DashboardPageContent() {
   const [startDate, setStartDate] = useLocalStorage<Date | undefined>('dashboardStartDate_v1', undefined);
   const [endDate, setEndDate] = useLocalStorage<Date | undefined>('dashboardEndDate_v1', undefined);
   
-  // Temporary states for dialog editing - these are reset when dialog opens
   const [tempCardOrder, setTempCardOrder] = useState<CardId[]>(cardOrder);
   const [tempStartDate, setTempStartDate] = useState<Date | undefined>(startDate);
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(endDate);
@@ -61,7 +60,6 @@ function DashboardPageContent() {
   useEffect(() => {
     if (isSettingsDialogOpen) {
       setTempCardOrder([...cardOrder]);
-      // Ensure date objects are properly recreated from stored strings if necessary
       setTempStartDate(startDate ? new Date(startDate) : undefined);
       setTempEndDate(endDate ? new Date(endDate) : undefined);
     }
@@ -71,14 +69,14 @@ function DashboardPageContent() {
     if (!isLoaded || !clientMounted) return [];
     let tempEntries = [...allEntries];
     if (startDate) {
-      const filterStart = startOfDay(new Date(startDate)); // Ensure Date object
+      const filterStart = startOfDay(new Date(startDate)); 
       tempEntries = tempEntries.filter(entry => {
         const entryDate = startOfDay(parseISO(entry.date));
         return entryDate >= filterStart;
       });
     }
     if (endDate) {
-      const filterEnd = startOfDay(new Date(endDate)); // Ensure Date object
+      const filterEnd = startOfDay(new Date(endDate)); 
       tempEntries = tempEntries.filter(entry => {
         const entryDate = startOfDay(parseISO(entry.date));
         return entryDate <= filterEnd;
@@ -137,7 +135,6 @@ function DashboardPageContent() {
 
   return (
     <>
-      {/* Settings button removed from here, will be in AppHeader */}
       <div className="space-y-8">
         {cardOrder.map((cardId) => {
           const CardComponent = componentsToRender[cardId].component as ComponentType<any>;
@@ -269,9 +266,6 @@ function DashboardPageContent() {
 }
 
 export default function DashboardPage() {
-  return (
-    <DashboardDialogProvider>
-      <DashboardPageContent />
-    </DashboardDialogProvider>
-  );
+  // DashboardDialogProvider is now in layout.tsx
+  return <DashboardPageContent />;
 }
