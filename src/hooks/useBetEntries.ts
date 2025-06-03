@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { BetEntry } from '@/lib/types';
 import useLocalStorage from './useLocalStorage';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from './use-toast'; // Added useToast
 
 const calculateEntryFields = (betAmount: number, payoutAmount: number): Pick<BetEntry, 'profitLoss' | 'roi'> => {
   const profitLoss = payoutAmount - betAmount;
@@ -29,6 +30,10 @@ export function useBetEntries() {
       roi, // roi is individual recovery rate (回収率)
     };
     setEntries(prevEntries => [...prevEntries, entryWithCalculations].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+    toast({
+      title: "成功",
+      description: "エントリーが追加されました。",
+    });
   }, [setEntries]);
 
   const updateEntry = useCallback((id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
@@ -40,10 +45,19 @@ export function useBetEntries() {
           : entry
       ).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     );
+    toast({
+      title: "成功",
+      description: "エントリーが更新されました。",
+    });
   }, [setEntries]);
 
   const deleteEntry = useCallback((id: string) => {
     setEntries(prevEntries => prevEntries.filter(entry => entry.id !== id));
+    toast({
+      title: "成功",
+      description: "エントリーが削除されました。",
+      variant: "destructive" 
+    });
   }, [setEntries]);
   
   const loadedEntries = isLoaded ? entries : [];

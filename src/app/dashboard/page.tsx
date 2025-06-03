@@ -8,7 +8,7 @@ import { useBetEntries } from '@/hooks/useBetEntries';
 import { useEffect, useState, useMemo } from 'react';
 import type { BetEntry } from '@/lib/types';
 import { Button } from "@/components/ui/button";
-import { Settings, ArrowUp, ArrowDown, ListFilter, FilterX, CalendarDays, Save } from 'lucide-react';
+import { Settings, ArrowUp, ArrowDown, ListFilter, FilterX, CalendarDays, Save, Loader2 } from 'lucide-react'; // Added Loader2
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import useLocalStorage from '@/hooks/useLocalStorage';
 import type { ComponentType } from 'react';
@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useDashboardDialog } from '@/contexts/DashboardDialogContext'; // No longer need DashboardDialogProvider here
+import { useDashboardDialog } from '@/contexts/DashboardDialogContext';
 
 export type CardId = 'stats' | 'chart' | 'table';
 
@@ -111,8 +111,9 @@ function DashboardPageContent() {
 
   if (!isLoaded || !clientMounted) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-xl text-muted-foreground">データを読み込み中...</p>
+      <div className="flex flex-col items-center justify-center h-64 space-y-2" data-ai-hint="loading spinner">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <p className="text-lg text-muted-foreground">データを読み込み中...</p>
       </div>
     );
   }

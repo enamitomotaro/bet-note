@@ -4,6 +4,7 @@
 import { EntriesTable } from '@/components/EntriesTable';
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react'; // Added Loader2
 
 export default function EntriesPage() {
   const { entries, addEntry, updateEntry, deleteEntry, isLoaded } = useBetEntries();
@@ -15,8 +16,9 @@ export default function EntriesPage() {
 
   if (!isLoaded || !clientMounted) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-xl text-muted-foreground">データを読み込み中...</p>
+      <div className="flex flex-col items-center justify-center h-64 space-y-2" data-ai-hint="loading spinner">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <p className="text-lg text-muted-foreground">データを読み込み中...</p>
       </div>
     );
   }
