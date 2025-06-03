@@ -1,3 +1,5 @@
+"use client";
+
 // This page was removed as the AI Predictor feature has been deprecated.
 // It might be automatically removed in a future cleanup.
 import { useEffect } from 'react';
