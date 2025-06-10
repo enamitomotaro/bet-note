@@ -1,4 +1,3 @@
-
 export interface BetEntry {
   id: string;
   date: string; // ISO string format: "YYYY-MM-DD"
@@ -13,7 +12,7 @@ export interface DashboardStats {
   totalInvestment: number;
   totalPayout: number;
   netProfit: number;
-  overallRoi: number; // Overall Payout Rate (回収率): (totalPayout / totalInvestment) * 100
+  overallRecoveryRate: number; // Overall Payout Rate (回収率): (totalPayout / totalInvestment) * 100
   hitRate: number; // Percentage
   maxPayoutPerRace: number; // New: Highest payout in a single race
 }
@@ -24,4 +23,3 @@ export interface ChartDataPoint {
 }
 
 export type ProfitChartTimespan = "daily" | "weekly" | "monthly";
-
