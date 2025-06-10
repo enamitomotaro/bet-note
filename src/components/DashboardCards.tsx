@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { BetEntry, DashboardStats } from '@/lib/types'; // Import BetEntry
+import type { BetEntry } from '@/lib/types'; // Import BetEntry
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, TrendingUp, Percent, Target, CheckCircle, CornerRightUp, Award, BarChart3 } from 'lucide-react';
 import { formatCurrency, formatPercentage, calculateStats } from '@/lib/calculations'; // Import calculateStats

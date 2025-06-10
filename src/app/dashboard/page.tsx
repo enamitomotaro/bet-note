@@ -8,7 +8,7 @@ import { useBetEntries } from '@/hooks/useBetEntries';
 import { useEffect, useState, useMemo } from 'react';
 import type { BetEntry } from '@/lib/types';
 import { Button } from "@/components/ui/button";
-import { Settings, ArrowUp, ArrowDown, ListFilter, FilterX, CalendarDays, Save, Loader2 } from 'lucide-react'; // Added Loader2
+import { ArrowUp, ArrowDown, FilterX, CalendarDays, Save, Loader2 } from 'lucide-react'; // Added Loader2
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import useLocalStorage from '@/hooks/useLocalStorage';
 import type { ComponentType } from 'react';

@@ -1,6 +1,6 @@
 
 import type { BetEntry, DashboardStats, ChartDataPoint, ProfitChartTimespan } from './types';
-import { format, parseISO, startOfWeek, startOfMonth, getWeek, getMonth, getYear, addDays } from 'date-fns';
+import { format, parseISO, getWeek, getYear, addDays } from 'date-fns';
 
 export function calculateStats(entries: BetEntry[]): DashboardStats {
   let totalInvestment = 0;
