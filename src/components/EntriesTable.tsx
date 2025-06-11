@@ -130,7 +130,8 @@ export function EntriesTable({
           entry.raceName?.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }
-    } // Always sort, even if filters are not shown (e.g. on dashboard, it should respect initial sort)
+    }
+    // フィルターが非表示でも常に並べ替えを行う（ダッシュボードでは初期ソートを維持）
     
     if (sortConfig.key) {
       processedEntries.sort((a, b) => {
@@ -452,7 +453,7 @@ export function EntriesTable({
             </ScrollArea>
           )}
         </CardContent>
-        {/* Removed UiCardFooter that previously held the "View All" button */}
+        {/* 以前 "全履歴を見る" ボタンを置いていた UiCardFooter を削除 */}
 
         {editingEntry && (
           <Dialog open={isEditDialogOpen} onOpenChange={(isOpen) => {
@@ -497,7 +498,8 @@ export function EntriesTable({
         )}
       </Card>
 
-      {onDeleteEntry && onUpdateEntry && ( // Ensure these are only rendered if needed
+      {onDeleteEntry && onUpdateEntry && (
+        // 削除・更新機能が必要なときだけダイアログを表示
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>

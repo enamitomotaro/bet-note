@@ -1,14 +1,14 @@
 
 "use client";
 
-import type { BetEntry } from '@/lib/types'; // Import BetEntry
+import type { BetEntry } from '@/lib/types'; // BetEntry 型をインポート
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DollarSign, TrendingUp, Percent, Target, CheckCircle, CornerRightUp, Award, BarChart3 } from 'lucide-react';
-import { formatCurrency, formatPercentage, calculateStats } from '@/lib/calculations'; // Import calculateStats
+import { formatCurrency, formatPercentage, calculateStats } from '@/lib/calculations'; // 計算用ユーティリティをインポート
 import { useMemo } from 'react';
 
 interface DashboardCardsProps {
-  entries: BetEntry[]; // Changed from stats: DashboardStats to entries: BetEntry[]
+  entries: BetEntry[]; // stats ではなく entries を受け取るよう変更
 }
 
 const StatItem = ({ title, value, icon: Icon, unit, dataAiHint }: { title: string; value: string | number; icon: React.ElementType; unit?: string; dataAiHint?: string }) => (
@@ -25,7 +25,7 @@ const StatItem = ({ title, value, icon: Icon, unit, dataAiHint }: { title: strin
 );
 
 export function DashboardCards({ entries }: DashboardCardsProps) {
-  // Calculate stats based on the provided (potentially filtered) entries
+  // 渡された（フィルタ済みの可能性がある）エントリーから統計値を計算
   const stats = useMemo(() => calculateStats(entries), [entries]);
 
   return (
@@ -35,7 +35,7 @@ export function DashboardCards({ entries }: DashboardCardsProps) {
           <BarChart3 className="h-6 w-6 text-accent" />
           統計概要
         </CardTitle>
-        {/* Removed static "期間: すべて" text */}
+        {/* 固定の「期間: すべて」テキストを削除 */}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

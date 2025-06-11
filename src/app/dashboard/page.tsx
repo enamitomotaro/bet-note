@@ -8,7 +8,7 @@ import { useBetEntries } from '@/hooks/useBetEntries';
 import { useEffect, useState, useMemo } from 'react';
 import type { BetEntry } from '@/lib/types';
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, FilterX, CalendarDays, Save, Loader2 } from 'lucide-react'; // Added Loader2
+import { ArrowUp, ArrowDown, FilterX, CalendarDays, Save, Loader2 } from 'lucide-react'; // Loader2 を追加
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import useLocalStorage from '@/hooks/useLocalStorage';
 import type { ComponentType } from 'react';
@@ -267,6 +267,6 @@ function DashboardPageContent() {
 }
 
 export default function DashboardPage() {
-  // DashboardDialogProvider is now in layout.tsx
+  // DashboardDialogProvider は layout.tsx で提供される
   return <DashboardPageContent />;
 }

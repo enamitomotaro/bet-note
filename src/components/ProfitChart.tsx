@@ -54,7 +54,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
     return chartType === "period" ? TrendingUp : LineChart;
   }, [chartType]);
 
-  if (!clientMounted && entries.length > 0) { // Show loading only if there are entries to process
+  if (!clientMounted && entries.length > 0) { // エントリーが存在するときのみ読み込み表示
     return (
         <Card className="flex flex-col" data-ai-hint="graph finance">
         <CardHeader>
@@ -92,7 +92,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
                 <TabsTrigger value="monthly" className="text-xs px-3 py-1.5">月次</TabsTrigger>
                 </TabsList>
             </Tabs>
-            {/* Removed static "期間: すべて" text */}
+            {/* 固定表示していた「期間: すべて」の文言を削除 */}
           </div>
         </div>
       </CardHeader>

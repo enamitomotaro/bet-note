@@ -41,7 +41,7 @@ interface EntryFormProps {
   initialData?: BetEntry;
   isEditMode?: boolean;
   onClose?: () => void;
-  isInDialog?: boolean; // New prop
+  isInDialog?: boolean; // 新しく追加したフラグ
 }
 
 export function EntryForm({ 
@@ -51,7 +51,7 @@ export function EntryForm({
   initialData, 
   isEditMode = false,
   onClose,
-  isInDialog = false, // Default to false
+  isInDialog = false, // 初期値は false
 }: EntryFormProps) {
   const form = useForm<EntryFormValues>({
     resolver: zodResolver(formSchema),
@@ -90,7 +90,7 @@ export function EntryForm({
       onUpdateEntry(initialData.id, entryData);
     } else if (onAddEntry) {
       onAddEntry(entryData);
-      if (!isEditMode) { // Reset only if it's a new entry form (not in dialog or not edit mode)
+      if (!isEditMode) { // ダイアログでない新規フォームの場合のみリセット
         form.reset({ 
           date: new Date(),
           raceName: "",
@@ -99,7 +99,7 @@ export function EntryForm({
         });
       }
     }
-    if (onClose) onClose(); // Call onClose if provided (used by dialogs)
+    if (onClose) onClose(); // onClose が渡された場合は実行（ダイアログ用）
   }
 
   const cardTitleText = isEditMode ? "エントリーを編集" : "新しいエントリー記録";
@@ -111,7 +111,7 @@ export function EntryForm({
         "mb-8", 
         isInDialog ? 'border-0 shadow-none p-0' : ''
       )} data-ai-hint="form document">
-      {!isEditMode && !isInDialog && ( // Show header only if not edit mode AND not in dialog
+      {!isEditMode && !isInDialog && ( // 編集フォームでもダイアログ内でもないときだけヘッダーを表示
         <CardHeader>
           <CardTitle className="text-xl flex items-center gap-2">
             <PlusCircle className="h-6 w-6 text-accent" />

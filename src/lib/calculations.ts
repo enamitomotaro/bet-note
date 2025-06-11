@@ -11,7 +11,7 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
   entries.forEach(entry => {
     totalInvestment += entry.betAmount;
     totalPayout += entry.payoutAmount;
-    if (entry.payoutAmount > entry.betAmount) { // Winning condition: payout is greater than bet
+    if (entry.payoutAmount > entry.betAmount) { // 払戻金が掛け金を上回れば的中
       winningEntryCount++;
     }
     if (entry.payoutAmount > maxPayoutPerRace) {
@@ -28,7 +28,7 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
     totalInvestment,
     totalPayout,
     netProfit,
-    overallRecoveryRate, // This is overallRecoveryRate, not overallRoi
+    overallRecoveryRate, // overallRecoveryRate（総回収率）を返す
     hitRate,
     maxPayoutPerRace,
   };
@@ -105,8 +105,8 @@ export function prepareCumulativeProfitChartData(entries: BetEntry[], timespan: 
   const lastDate = parseISO(lastDateStr);
   let lastKnownProfit = 0;
   
-  // Calculate profit before the very first date in dailyCumulativeProfitsWithEntries
-  // This ensures the graph starts from a sensible baseline if there were entries before this period.
+  // 最初のエントリー以前の累積利益を算出
+  // これにより、過去にエントリーがあった場合もグラフの起点がずれない
   let initialBaselineProfit = 0;
     for (const entry of sortedEntries) {
         if (parseISO(entry.date) < parseISO(firstDateStr)) {
@@ -123,17 +123,17 @@ export function prepareCumulativeProfitChartData(entries: BetEntry[], timespan: 
     const dateKey = format(currentDate, 'yyyy-MM-dd');
     if (dailyCumulativeProfitsWithEntries[dateKey] !== undefined) {
       lastKnownProfit = dailyCumulativeProfitsWithEntries[dateKey];
-    } else if (currentDate >= parseISO(firstDateStr)) { // Only fill forward if we are past or at the first entry date
-        // For days without entries, carry forward the last known profit
+    } else if (currentDate >= parseISO(firstDateStr)) { // 初回以降の日は前日の利益を引き継ぐ
+        // エントリーのない日は直前の利益を流用
         allDailyProfits[dateKey] = lastKnownProfit;
     } else {
-        // For days before any recorded entry with profit, use the initial baseline
+        // エントリー前の日は初期基準値を使用
         allDailyProfits[dateKey] = initialBaselineProfit;
     }
      if (dailyCumulativeProfitsWithEntries[dateKey] !== undefined) {
-      allDailyProfits[dateKey] = dailyCumulativeProfitsWithEntries[dateKey]; // Prioritize actual entry day's cumulative
+      allDailyProfits[dateKey] = dailyCumulativeProfitsWithEntries[dateKey]; // 実際のエントリー日の値を優先
     } else {
-      allDailyProfits[dateKey] = lastKnownProfit; // Fill with last known if no entry on this day
+      allDailyProfits[dateKey] = lastKnownProfit; // エントリーがない日は直前値を使用
     }
     currentDate = addDays(currentDate, 1);
   }
@@ -149,8 +149,8 @@ export function prepareCumulativeProfitChartData(entries: BetEntry[], timespan: 
               break;
           case 'weekly':
               key = `${getYear(date)}-W${String(getWeek(date, { weekStartsOn: 1 })).padStart(2, '0')}`;
-              // For weekly/monthly, we want the cumulative profit at the END of that period.
-              // So, this assignment effectively takes the latest known profit for that period.
+              // 週次・月次の場合はその期間の終了時点の累積利益を使用する
+              // そのためここでは最新の値を採用している
               aggregatedData[key] = profit; 
               break;
           case 'monthly':

@@ -4,7 +4,7 @@
 import { EntriesTable } from '@/components/EntriesTable';
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react'; // Added Loader2
+import { Loader2 } from 'lucide-react'; // Loader2 を追加
 
 export default function EntriesPage() {
   const { entries, addEntry, updateEntry, deleteEntry, isLoaded } = useBetEntries();
@@ -25,7 +25,7 @@ export default function EntriesPage() {
 
   return (
     <div className="space-y-8">
-      {/* EntryForm component removed from here as it's now in a global dialog */}
+      {/* EntryForm はグローバルダイアログに移動したためここでは表示しない */}
       <EntriesTable entries={entries} onDeleteEntry={deleteEntry} onUpdateEntry={updateEntry} />
     </div>
   );
