@@ -57,7 +57,7 @@ root
 ```bash
 # 1. クローン
 git clone <repo-url>
-cd betnote
+cd bet-note
 
 # 2. 依存関係
 npm install   # または yarn
