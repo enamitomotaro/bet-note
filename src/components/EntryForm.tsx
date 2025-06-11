@@ -28,8 +28,8 @@ const formSchema = z.object({
     required_error: "日付を入力してください。",
   }),
   raceName: z.string().optional(),
-  betAmount: z.coerce.number().min(1, { message: "1円以上の掛け金を入力してください。" }).step(100),
-  payoutAmount: z.coerce.number().min(0, { message: "0円以上の払戻金を入力してください。" }).step(10),
+  betAmount: z.coerce.number().min(1, { message: "1円以上の掛け金を入力してください。" }).multipleOf(100),
+  payoutAmount: z.coerce.number().min(0, { message: "0円以上の払戻金を入力してください。" }).multipleOf(10),
 });
 
 type EntryFormValues = z.infer<typeof formSchema>;
