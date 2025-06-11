@@ -806,6 +806,30 @@
   resolved "https://registry.yarnpkg.com/@radix-ui/rect/-/rect-1.1.1.tgz#78244efe12930c56fd255d7923865857c41ac8cb"
   integrity sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==
 
+"@stagewise-plugins/react@^0.4.5":
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/@stagewise-plugins/react/-/react-0.4.5.tgz#b7cb551dc43376efb345ffa9c8b92d23c082843c"
+  integrity sha512-WIcmGSfDd2LoqfpgyUFUS0w3ALuNMGcLrwmSJlWvNQJIQbZaGg+zwsp4x/6azAOuhbo338cf07EHaYUaThKXIQ==
+
+"@stagewise/toolbar-next@^0.4.5":
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/@stagewise/toolbar-next/-/toolbar-next-0.4.5.tgz#8c1ca9e5bb92e48861855f2bea65923465333338"
+  integrity sha512-SJFMZapP9AEUZ511eqkDxpsQx8BS8z7L7oaEth9Z3Ro+eDw0XAPck1dUx7Q4zmZcxh9cT0eAJIDfcImy/NxZsw==
+  dependencies:
+    "@stagewise/toolbar-react" "0.4.5"
+
+"@stagewise/toolbar-react@0.4.5":
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/@stagewise/toolbar-react/-/toolbar-react-0.4.5.tgz#2c5d79cd800d9b54acd167974ca80b53068994b9"
+  integrity sha512-/IqqSWZMiS2arPka+dLa4BB5iyLzY33i3gH8f6RXwTgX3FkCIYPs8/k+ie1zWzD+HII9lia9F+OGiSS1uTjiZg==
+  dependencies:
+    "@stagewise/toolbar" "0.4.5"
+
+"@stagewise/toolbar@0.4.5":
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/@stagewise/toolbar/-/toolbar-0.4.5.tgz#5f3abea0810265468cb4a167e06cb0fae1d4afd2"
+  integrity sha512-FFOuuBnfcSKwSBnfuclgFygd8mvHnJZXgr2KCJofyww5CZxr7sYl0IuSKLngufK+880o5mR0C8IV9lQV9JY6bg==
+
 "@standard-schema/utils@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@standard-schema/utils/-/utils-0.3.0.tgz#3d5e608f16c2390c10528e98e59aef6bf73cae7b"
