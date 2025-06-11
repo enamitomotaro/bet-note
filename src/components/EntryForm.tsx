@@ -41,7 +41,8 @@ interface EntryFormProps {
   initialData?: BetEntry;
   isEditMode?: boolean;
   onClose?: () => void;
-  isInDialog?: boolean; // New prop
+  // true when the form is rendered inside a dialog
+  isInDialog?: boolean;
 }
 
 export function EntryForm({ 
