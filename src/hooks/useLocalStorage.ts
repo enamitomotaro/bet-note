@@ -10,17 +10,17 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, Dispatch<SetState
     }
     try {
       const item = window.localStorage.getItem(key);
-      if (item === null) { // Key not found in localStorage
+      if (item === null) { // localStorage にキーが無い場合
         return initialValue;
       }
-      if (item === "undefined") { // Explicitly check for the string "undefined"
-        // This handles cases where a previous version might have incorrectly stored the literal string "undefined"
+      if (item === "undefined") { // 文字列 "undefined" が保存されていた場合の対処
+        // 以前のバージョンで誤って "undefined" が保存されていた可能性を考慮
         return initialValue;
       }
-      // Attempt to parse other values. If item was "null", JSON.parse will correctly return null.
+      // それ以外は JSON.parse で変換（"null" の場合は null が返る）
       return JSON.parse(item);
     } catch (error) {
-      // Fallback for other parsing errors.
+      // 解析に失敗した場合のフォールバック
       console.error(`Error parsing localStorage key "${key}" with value "${window.localStorage.getItem(key)}". Returning initial value.`, error);
       return initialValue;
     }
@@ -32,7 +32,7 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, Dispatch<SetState
         const valueToProcess = typeof storedValue === 'function' ? (storedValue as Function)(storedValue) : storedValue;
 
         if (valueToProcess === undefined) {
-          // If the value is undefined, remove it from localStorage to avoid storing the string "undefined"
+          // undefined の場合は文字列 "undefined" を保存しないよう削除
           window.localStorage.removeItem(key);
         } else {
           window.localStorage.setItem(key, JSON.stringify(valueToProcess));

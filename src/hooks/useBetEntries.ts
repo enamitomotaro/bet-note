@@ -5,11 +5,11 @@ import { useState, useEffect, useCallback } from 'react';
 import type { BetEntry } from '@/lib/types';
 import useLocalStorage from './useLocalStorage';
 import { v4 as uuidv4 } from 'uuid';
-import { toast } from './use-toast'; // Added useToast
+import { toast } from './use-toast'; // トースト表示用のフックを追加
 
 const calculateEntryFields = (betAmount: number, payoutAmount: number): Pick<BetEntry, 'profitLoss' | 'roi'> => {
   const profitLoss = payoutAmount - betAmount;
-  const roi = betAmount > 0 ? (payoutAmount / betAmount) * 100 : 0; // Individual recovery rate
+  const roi = betAmount > 0 ? (payoutAmount / betAmount) * 100 : 0; // 個別の回収率
   return { profitLoss, roi };
 };
 
@@ -27,7 +27,7 @@ export function useBetEntries() {
       ...newEntryData,
       id: uuidv4(),
       profitLoss,
-      roi, // roi is individual recovery rate (回収率)
+      roi, // 個別の回収率
     };
     setEntries(prevEntries => [...prevEntries, entryWithCalculations].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
     toast({

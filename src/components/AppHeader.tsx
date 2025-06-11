@@ -1,7 +1,7 @@
 
 "use client";
 import Link from 'next/link';
-import { Ticket, Menu, PlusCircle, Settings } from 'lucide-react'; // Added Settings
+import { Ticket, Menu, PlusCircle, Settings } from 'lucide-react'; // Settings を追加
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { LucideIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useDashboardDialog } from '@/contexts/DashboardDialogContext'; // Added
+import { useDashboardDialog } from '@/contexts/DashboardDialogContext'; // ダイアログ用コンテキストを追加
 
 interface NavItem {
   href: string;
@@ -32,7 +32,7 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
   const isMobile = useIsMobile();
   const pathname = usePathname();
   const router = useRouter();
-  const { setIsSettingsDialogOpen } = useDashboardDialog(); // Added
+  const { setIsSettingsDialogOpen } = useDashboardDialog(); // 追加したコンテキスト
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
@@ -42,13 +42,11 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
   };
 
   const handleOpenSettingsDialog = () => {
-    if (pathname === '/dashboard') { // Only open if on dashboard page
+    if (pathname === '/dashboard') { // ダッシュボードページのときだけ開く
         setIsSettingsDialogOpen(true);
     } else {
         router.push('/dashboard', { scroll: false });
-        // Consider opening dialog after navigation completes,
-        // possibly with a small delay or a flag in route state.
-        // For now, direct navigation is simpler.
+        // 画面遷移後に開く処理も考えられるが、ここでは単純に遷移のみ行う
     }
   };
 
@@ -56,13 +54,13 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3 px-4 md:px-8 border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16">
-        {/* Left: Logo and App Name */}
+        {/* 左側: ロゴとアプリ名 */}
         <Link href="/dashboard" className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors shrink-0">
           <Ticket className="h-7 w-7" />
           <span className="text-xl font-semibold">{appName}</span>
         </Link>
 
-        {/* Desktop Navigation (Center) */}
+        {/* 中央: PC 用ナビゲーション */}
         {!isMobile && (
           <nav className="hidden md:flex items-center space-x-1 mx-auto">
             {navItems.map((item) => (
@@ -82,7 +80,7 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
           </nav>
         )}
 
-        {/* Right: Action Buttons / Mobile Menu */}
+        {/* 右側: アクションボタン／モバイルメニュー */}
         <div className="flex items-center gap-2">
           {!isMobile && (
             <>
@@ -96,7 +94,7 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
                 <PlusCircle className="mr-2 h-4 w-4" />
                 新規記録
               </Button>
-              {pathname === '/dashboard' && ( // Only show settings button on dashboard
+              {pathname === '/dashboard' && ( // 設定ボタンはダッシュボードでのみ表示
                  <Button
                     variant="outline"
                     size="icon"
@@ -137,7 +135,7 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
                   <PlusCircle className="mr-2 h-4 w-4" />
                   <span>新規記録</span>
                 </DropdownMenuItem>
-                {/* Conditionally add Settings to mobile menu only if on dashboard */}
+                {/* モバイルメニューではダッシュボード時のみ設定を表示 */}
                 {pathname === '/dashboard' && (
                     <DropdownMenuItem onClick={handleOpenSettingsDialog} className="cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
@@ -147,7 +145,7 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-             pathname !== '/dashboard' && <div className="w-[40px] h-[40px]"></div> // Placeholder to balance layout if settings button not shown
+             pathname !== '/dashboard' && <div className="w-[40px] h-[40px]"></div> // 設定ボタンが無い場合のレイアウト調整用
           )}
         </div>
       </div>

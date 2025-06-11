@@ -4,15 +4,15 @@
 import { AppHeader } from '@/components/AppHeader';
 import type { LucideIcon } from 'lucide-react';
 import { Home, ListChecks } from 'lucide-react';
-import { usePathname } from 'next/navigation'; // Removed useRouter as it's not used here
-import React, { useState } from 'react'; // Removed useEffect as clientMounted is not strictly needed
+import { usePathname } from 'next/navigation'; // useRouter は不要なので削除
+import React, { useState } from 'react'; // clientMounted 用の useEffect は不要
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { EntryForm } from '@/components/EntryForm';
 import { Button } from '@/components/ui/button';
 import type { BetEntry } from '@/lib/types';
 import { PlusCircle } from 'lucide-react';
-import { DashboardDialogProvider } from '@/contexts/DashboardDialogContext'; // Added
+import { DashboardDialogProvider } from '@/contexts/DashboardDialogContext'; // 追加したダイアログプロバイダー
 
 export const navItems: { href: string; label: string; icon: LucideIcon }[] = [
   { href: '/dashboard', label: 'ダッシュボード', icon: Home },
@@ -41,7 +41,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <DashboardDialogProvider> {/* Moved Provider here */}
+    <DashboardDialogProvider> {/* プロバイダーをここに配置 */}
       <div className="flex flex-col min-h-screen">
         <AppHeader
           appName={APP_NAME}
