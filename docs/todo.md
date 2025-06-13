@@ -3,9 +3,9 @@
 BetNote の Supabase 化に向けた具体的なチケット一覧です。各項目を完了したらチェックを入れてください。
 
 ## フェーズ 0: 準備
-- [ ] Supabase プロジェクトを作成して URL と API キーを取得
-- [ ] GitHub リポジトリと Vercel プロジェクトを連携
-- [ ] `supabase` CLI をセットアップし `supabase init` する
+- [x] Supabase プロジェクトを作成して URL と API キーを取得
+- [x] GitHub リポジトリと Vercel プロジェクトを連携
+- [x] `supabase` CLI をセットアップし `supabase init` する
 
 ## フェーズ 1: DB 設計
 - [ ] `profiles` テーブルを定義 (id, email, display_name など)
