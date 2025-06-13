@@ -25,11 +25,13 @@ export default function RootLayout({
       <body className="antialiased">
         {children}
         <Toaster />
-        <StagewiseToolbar
-          config={{
-            plugins: [ReactPlugin],
-          }}
-        />
+        {process.env.NODE_ENV === "development" && (
+          <StagewiseToolbar
+            config={{
+              plugins: [ReactPlugin],
+            }}
+          />
+        )}
       </body>
     </html>
   );
