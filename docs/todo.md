@@ -14,10 +14,10 @@ BetNote の Supabase 化に向けた具体的なチケット一覧です。各�
 - [x] `supabase db push` でスキーマをデプロイ
 
 ## フェーズ 2: 認証基盤
-- [ ] `@supabase/supabase-js` を依存に追加
-- [ ] Server / Browser クライアントを提供する `SupabaseProvider` を実装
-- [ ] OAuth (Google, Apple) とメールリンク認証を設定
-- [ ] `/dashboard` ルートを Middleware で保護
+- [x] `@supabase/supabase-js` を依存に追加
+- [x] Server / Browser クライアントを提供する `SupabaseProvider` を実装
+- [x] OAuth (Google, Apple) とメールリンク認証を設定
+- [x] `/dashboard` ルートを Middleware で保護
 
 ## フェーズ 3: CRUD 移行
 - [ ] `useBetEntries` フックを Supabase API 版に刷新

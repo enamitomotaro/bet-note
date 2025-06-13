@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { StagewiseToolbar } from "@stagewise/toolbar-next";
 import { ReactPlugin } from "@stagewise-plugins/react";
+import { SupabaseProvider } from "@/contexts/SupabaseProvider";
 
 const inter = Inter({
   variable: "--font-geist-sans",
@@ -23,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="ja" className={inter.variable}>
       <body className="antialiased">
-        {children}
+        <SupabaseProvider>{children}</SupabaseProvider>
         <Toaster />
         {process.env.NODE_ENV === "development" && (
           <StagewiseToolbar
