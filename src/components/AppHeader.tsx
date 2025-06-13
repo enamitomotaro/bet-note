@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useDashboardDialog } from '@/contexts/DashboardDialogContext'; // ダイアログ用コンテキストを追加
+import { useSupabase } from '@/contexts/SupabaseProvider';
 import useTheme from '@/hooks/useTheme';
 import ThemeToggleButton from './ThemeToggleButton';
 
@@ -35,9 +36,15 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
   const pathname = usePathname();
   const router = useRouter();
   const { setIsSettingsDialogOpen } = useDashboardDialog(); // 追加したコンテキスト
+  const { supabase, session } = useSupabase();
   const [theme, setTheme] = useTheme();
   const isDark = theme === 'dark';
   const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
@@ -111,6 +118,15 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
                 </Button>
               )}
               <ThemeToggleButton />
+              {session ? (
+                <Button variant="outline" size="sm" onClick={handleSignOut}">
+                  ログアウト
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/login">ログイン</Link>
+                </Button>
+              )}
             </>
           )}
 
@@ -156,6 +172,15 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
                   )}
                   <span>テーマ切替</span>
                 </DropdownMenuItem>
+                {session ? (
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                    <span>ログアウト</span>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => router.push('/login')} className="cursor-pointer">
+                    <span>ログイン</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
