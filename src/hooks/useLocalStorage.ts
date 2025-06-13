@@ -4,27 +4,24 @@
 import { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
 
 function useLocalStorage<T>(key: string, initialValue: T): [T, Dispatch<SetStateAction<T>>] {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === "undefined") {
-      return initialValue;
-    }
+  // 初回レンダーでは initialValue をそのまま使い、マウント後に localStorage から読み込む
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
+
+  // マウント時に一度だけ localStorage の値を読み込む
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     try {
       const item = window.localStorage.getItem(key);
-      if (item === null) { // localStorage にキーが無い場合
-        return initialValue;
+      if (item === null || item === "undefined") {
+        setStoredValue(initialValue);
+      } else {
+        setStoredValue(JSON.parse(item));
       }
-      if (item === "undefined") { // 文字列 "undefined" が保存されていた場合の対処
-        // 以前のバージョンで誤って "undefined" が保存されていた可能性を考慮
-        return initialValue;
-      }
-      // それ以外は JSON.parse で変換（"null" の場合は null が返る）
-      return JSON.parse(item);
     } catch (error) {
-      // 解析に失敗した場合のフォールバック
-      console.error(`Error parsing localStorage key "${key}" with value "${window.localStorage.getItem(key)}". Returning initial value.`, error);
-      return initialValue;
+      console.error(`Error parsing localStorage key "${key}" with value "${window.localStorage.getItem(key)}". Using initial value.`, error);
+      setStoredValue(initialValue);
     }
-  });
+  }, [key, initialValue]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
