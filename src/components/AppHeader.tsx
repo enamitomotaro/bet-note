@@ -1,7 +1,7 @@
 
 "use client";
 import Link from 'next/link';
-import { Ticket, Menu, PlusCircle, Settings } from 'lucide-react'; // Settings を追加
+import { Ticket, Menu, PlusCircle, Settings, Moon, Sun } from 'lucide-react'; // Settings を追加
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { LucideIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -15,6 +15,8 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useDashboardDialog } from '@/contexts/DashboardDialogContext'; // ダイアログ用コンテキストを追加
+import useTheme from '@/hooks/useTheme';
+import ThemeToggleButton from './ThemeToggleButton';
 
 interface NavItem {
   href: string;
@@ -33,6 +35,9 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
   const pathname = usePathname();
   const router = useRouter();
   const { setIsSettingsDialogOpen } = useDashboardDialog(); // 追加したコンテキスト
+  const [theme, setTheme] = useTheme();
+  const isDark = theme === 'dark';
+  const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
@@ -105,6 +110,7 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
                     <Settings className="h-5 w-5" />
                 </Button>
               )}
+              <ThemeToggleButton />
             </>
           )}
 
@@ -142,6 +148,14 @@ export function AppHeader({ appName, navItems, onOpenAddEntryDialog }: AppHeader
                         <span>設定</span>
                     </DropdownMenuItem>
                 )}
+                <DropdownMenuItem onClick={toggleTheme} className="cursor-pointer">
+                  {isDark ? (
+                    <Sun className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Moon className="mr-2 h-4 w-4" />
+                  )}
+                  <span>テーマ切替</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
