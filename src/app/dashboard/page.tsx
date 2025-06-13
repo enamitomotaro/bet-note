@@ -16,6 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
+import { migrateLocalEntries } from "@/lib/localMigration";
+import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useDashboardDialog } from '@/contexts/DashboardDialogContext';
 
 export type CardId = 'stats' | 'chart' | 'table';
@@ -39,6 +41,7 @@ interface CardComponentProps {
 
 function DashboardPageContent() {
   const { entries: allEntries, deleteEntry, updateEntry, isLoaded } = useBetEntries();
+  const { session } = useSupabase();
   const [clientMounted, setClientMounted] = useState(false);
   const { isSettingsDialogOpen, setIsSettingsDialogOpen } = useDashboardDialog();
 
@@ -56,6 +59,12 @@ function DashboardPageContent() {
   useEffect(() => {
     setClientMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (session) {
+      migrateLocalEntries(session.user.id);
+    }
+  }, [session]);
   
   useEffect(() => {
     if (isSettingsDialogOpen) {
