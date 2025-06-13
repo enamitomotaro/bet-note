@@ -3,9 +3,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { BetEntry } from '@/lib/types';
-import useLocalStorage from './useLocalStorage';
-import { v4 as uuidv4 } from 'uuid';
 import { toast } from './use-toast'; // トースト表示用のフックを追加
+import { useSupabase } from '@/contexts/SupabaseProvider';
+import { insertBetEntry, updateBetEntry, deleteBetEntry } from '@/app/actions/betEntries';
 
 const calculateEntryFields = (betAmount: number, payoutAmount: number): Pick<BetEntry, 'profitLoss' | 'roi'> => {
   const profitLoss = payoutAmount - betAmount;
@@ -14,52 +14,105 @@ const calculateEntryFields = (betAmount: number, payoutAmount: number): Pick<Bet
 };
 
 export function useBetEntries() {
-  const [entries, setEntries] = useLocalStorage<BetEntry[]>('betEntries', []);
+  const { supabase, session } = useSupabase();
+  const [entries, setEntries] = useState<BetEntry[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
-
-  const addEntry = useCallback((newEntryData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
-    const { profitLoss, roi } = calculateEntryFields(newEntryData.betAmount, newEntryData.payoutAmount);
-    const entryWithCalculations: BetEntry = {
-      ...newEntryData,
-      id: uuidv4(),
+  const mapRow = (row: any): BetEntry => {
+    const { profitLoss, roi } = calculateEntryFields(row.stake, row.payout ?? 0);
+    return {
+      id: row.id,
+      date: row.date,
+      raceName: row.race_name,
+      betAmount: row.stake,
+      payoutAmount: row.payout ?? 0,
       profitLoss,
-      roi, // 個別の回収率
+      roi,
     };
-    setEntries(prevEntries => [...prevEntries, entryWithCalculations].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
-    toast({
-      title: "成功",
-      description: "エントリーが追加されました。",
-    });
-  }, [setEntries]);
+  };
 
-  const updateEntry = useCallback((id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
-    const { profitLoss, roi } = calculateEntryFields(updatedData.betAmount, updatedData.payoutAmount);
-    setEntries(prevEntries =>
-      prevEntries.map(entry =>
-        entry.id === id
-          ? { ...entry, ...updatedData, profitLoss, roi }
-          : entry
-      ).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    );
-    toast({
-      title: "成功",
-      description: "エントリーが更新されました。",
-    });
-  }, [setEntries]);
+  useEffect(() => {
+    if (!session) {
+      setEntries([]);
+      setIsLoaded(true);
+      return;
+    }
 
-  const deleteEntry = useCallback((id: string) => {
-    setEntries(prevEntries => prevEntries.filter(entry => entry.id !== id));
-    toast({
-      title: "成功",
-      description: "エントリーが削除されました。",
-      variant: "destructive" 
+    let channel: any;
+    const fetchEntries = async () => {
+      const { data, error } = await supabase
+        .from('bet_entries')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('date', { ascending: true });
+      if (!error && data) {
+        setEntries(data.map(mapRow));
+      }
+      setIsLoaded(true);
+
+      channel = supabase
+        .channel('public:bet_entries')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'bet_entries', filter: `user_id=eq.${session.user.id}` },
+          payload => {
+            if (payload.eventType === 'INSERT') {
+              setEntries(prev => [...prev, mapRow(payload.new)].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+            } else if (payload.eventType === 'UPDATE') {
+              setEntries(prev => prev.map(e => e.id === payload.new.id ? mapRow(payload.new) : e).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+            } else if (payload.eventType === 'DELETE') {
+              setEntries(prev => prev.filter(e => e.id !== payload.old.id));
+            }
+          }
+        )
+        .subscribe();
+    };
+
+    fetchEntries();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [supabase, session]);
+
+  const addEntry = useCallback(async (newEntryData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
+    if (!session) return;
+    await insertBetEntry(session.user.id, {
+      date: newEntryData.date,
+      raceName: newEntryData.raceName,
+      betAmount: newEntryData.betAmount,
+      payoutAmount: newEntryData.payoutAmount,
     });
-  }, [setEntries]);
-  
+    toast({
+      title: '成功',
+      description: 'エントリーが追加されました。',
+    });
+  }, [session]);
+
+  const updateEntry = useCallback(async (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
+    if (!session) return;
+    await updateBetEntry(id, session.user.id, {
+      date: updatedData.date,
+      raceName: updatedData.raceName,
+      betAmount: updatedData.betAmount,
+      payoutAmount: updatedData.payoutAmount,
+    });
+    toast({
+      title: '成功',
+      description: 'エントリーが更新されました。',
+    });
+  }, [session]);
+
+  const deleteEntry = useCallback(async (id: string) => {
+    if (!session) return;
+    await deleteBetEntry(id, session.user.id);
+    toast({
+      title: '成功',
+      description: 'エントリーが削除されました。',
+      variant: 'destructive',
+    });
+  }, [session]);
+
   const loadedEntries = isLoaded ? entries : [];
 
   return { entries: loadedEntries, addEntry, updateEntry, deleteEntry, isLoaded };
