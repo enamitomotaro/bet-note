@@ -51,3 +51,10 @@ export async function deleteBetEntry(id: string, userId: string) {
     .eq('user_id', userId);
   if (error) throw error;
 }
+
+export async function bulkInsertBetEntries(userId: string, data: EntryBase[]) {
+  const supabase = getClient();
+  const rows = data.map(d => mapToDb(userId, d));
+  const { error } = await supabase.from('bet_entries').insert(rows);
+  if (error) throw error;
+}
