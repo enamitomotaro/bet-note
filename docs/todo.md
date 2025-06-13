@@ -8,10 +8,10 @@ BetNote の Supabase 化に向けた具体的なチケット一覧です。各�
 - [x] `supabase` CLI をセットアップし `supabase init` する
 
 ## フェーズ 1: DB 設計
-- [ ] `profiles` テーブルを定義 (id, email, display_name など)
-- [ ] `bet_entries` テーブルを定義 (user_id, date, race_name など)
-- [ ] Row Level Security を有効化しポリシーを作成
-- [ ] `supabase db push` でスキーマをデプロイ
+- [x] `profiles` テーブルを定義 (id, email, display_name など)
+- [x] `bet_entries` テーブルを定義 (user_id, date, race_name など)
+- [x] Row Level Security を有効化しポリシーを作成
+- [x] `supabase db push` でスキーマをデプロイ
 
 ## フェーズ 2: 認証基盤
 - [ ] `@supabase/supabase-js` を依存に追加
