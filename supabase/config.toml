@@ -1,0 +1,7 @@
+[project]
+ref = "your-project-ref"
+api_url = "https://your-project.supabase.co"
+api_key = "YOUR_SUPABASE_ANON_KEY"
+
+[db]
+endpoint = "postgresql://postgres:postgres@localhost:5432/postgres"

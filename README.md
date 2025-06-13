@@ -70,6 +70,15 @@ npm run build
 npm start
 ```
 
+### Supabase 設定
+
+`.env.example` をコピーして `.env` を作成し、Supabase プロジェクトの URL と API キーを設定します。
+
+```bash
+cp .env.example .env
+# 環境変数を編集
+```
+
 ### よく使う npm スクリプト
 
 | スクリプト | 説明 |
