@@ -16,7 +16,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
-import { migrateLocalEntries } from "@/lib/localMigration";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useDashboardDialog } from '@/contexts/DashboardDialogContext';
 
@@ -60,11 +59,6 @@ function DashboardPageContent() {
     setClientMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (session) {
-      migrateLocalEntries(session.user.id);
-    }
-  }, [session]);
   
   useEffect(() => {
     if (isSettingsDialogOpen) {
