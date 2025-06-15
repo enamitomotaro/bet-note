@@ -1,18 +1,27 @@
 "use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSupabase } from "@/contexts/SupabaseProvider";
+import LandingPage from "@/components/LandingPage";
 
-export default function HomePageRedirect() {
+export default function HomePage() {
+  const { session } = useSupabase();
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/dashboard');
-  }, [router]);
+    if (session) {
+      router.replace("/dashboard");
+    }
+  }, [session, router]);
 
-  return (
-    <div className="flex flex-col min-h-screen items-center justify-center">
-      <p className="text-xl text-muted-foreground">ダッシュボードへリダイレクト中...</p>
-    </div>
-  );
+  if (session) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center">
+        <p className="text-xl text-muted-foreground">ダッシュボードへリダイレクト中...</p>
+      </div>
+    );
+  }
+
+  return <LandingPage />;
 }
