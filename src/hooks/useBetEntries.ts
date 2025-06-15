@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { BetEntry } from '@/lib/types';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { toast } from './use-toast'; // トースト表示用のフックを追加
 import { useSupabase } from '@/contexts/SupabaseProvider';
 import { insertBetEntry, updateBetEntry, deleteBetEntry } from '@/app/actions/betEntries';
@@ -18,7 +19,15 @@ export function useBetEntries() {
   const [entries, setEntries] = useState<BetEntry[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const mapRow = (row: any): BetEntry => {
+  interface BetEntriesRow {
+    id: string;
+    date: string;
+    race_name: string | null;
+    stake: number;
+    payout: number | null;
+  }
+
+  const mapRow = (row: BetEntriesRow): BetEntry => {
     const { profitLoss, roi } = calculateEntryFields(row.stake, row.payout ?? 0);
     return {
       id: row.id,
@@ -38,7 +47,7 @@ export function useBetEntries() {
       return;
     }
 
-    let channel: any;
+    let channel: RealtimeChannel | null = null;
     const fetchEntries = async () => {
       const { data, error } = await supabase
         .from('bet_entries')

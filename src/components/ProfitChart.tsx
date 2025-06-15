@@ -15,7 +15,14 @@ interface ProfitChartProps {
 
 type ChartType = "period" | "cumulative";
 
-const CustomTooltip = ({ active, payload, label, chartType }: any) => {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: { value: number }[];
+  label?: string;
+  chartType: ChartType;
+}
+
+const CustomTooltip = ({ active, payload, label, chartType }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const dataName = chartType === "period" ? "期間別損益" : "累積損益";
     return (

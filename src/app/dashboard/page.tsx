@@ -16,7 +16,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useDashboardDialog } from '@/contexts/DashboardDialogContext';
 
 export type CardId = 'stats' | 'chart' | 'table';
@@ -32,7 +31,7 @@ const cardDisplayNames: Record<CardId, string> = {
 interface CardComponentProps {
   entries: BetEntry[];
   onDeleteEntry?: (id: string) => void;
-  onUpdateEntry?: (id: string, data: any) => void;
+  onUpdateEntry?: (id: string, data: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => void;
   displayLimit?: number;
   viewAllLinkPath?: string;
   showFilterControls?: boolean;
@@ -40,7 +39,6 @@ interface CardComponentProps {
 
 function DashboardPageContent() {
   const { entries: allEntries, deleteEntry, updateEntry, isLoaded } = useBetEntries();
-  const { session } = useSupabase();
   const [clientMounted, setClientMounted] = useState(false);
   const { isSettingsDialogOpen, setIsSettingsDialogOpen } = useDashboardDialog();
 
@@ -141,7 +139,7 @@ function DashboardPageContent() {
     <>
       <div className="space-y-8">
         {cardOrder.map((cardId) => {
-          const CardComponent = componentsToRender[cardId].component as ComponentType<any>;
+          const CardComponent = componentsToRender[cardId].component as ComponentType<CardComponentProps>;
           const props = componentsToRender[cardId].props;
           return (
             <div key={cardId}>
