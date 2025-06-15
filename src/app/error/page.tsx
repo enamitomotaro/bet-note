@@ -1,3 +1,5 @@
+'use client'
+
 export default function ErrorPage() {
-  return <p>エラーが発生しました。</p>
+  return <p>Sorry, something went wrong</p>
 }

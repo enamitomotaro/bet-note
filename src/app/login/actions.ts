@@ -1,46 +1,46 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { headers, cookies } from 'next/headers'
+
+import { createClient } from '@/utils/supabase/server'
 
 export async function login(formData: FormData) {
-  const supabase = createClient()
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  const supabase = await createClient()
+
+  // type-casting here for convenience
+  // in practice, you should validate your inputs
+  const data = {
+    email: formData.get('email') as string,
+    password: formData.get('password') as string,
+  }
+
+  const { error } = await supabase.auth.signInWithPassword(data)
+
   if (error) {
     redirect('/error')
   }
-  redirect('/dashboard')
+
+  revalidatePath('/', 'layout')
+  redirect('/')
 }
 
 export async function signup(formData: FormData) {
-  const supabase = createClient()
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const state = crypto.randomUUID()
-  const origin =
-    (await headers()).get('origin') ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    'http://localhost:3000'
-  const cookieStore = await cookies()
-  cookieStore.set('auth_state', state, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: true,
-    path: '/',
-    maxAge: 60 * 10,
-  })
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${origin}/auth/confirm?state=${state}`,
-    },
-  })
+  const supabase = await createClient()
+
+  // type-casting here for convenience
+  // in practice, you should validate your inputs
+  const data = {
+    email: formData.get('email') as string,
+    password: formData.get('password') as string,
+  }
+
+  const { error } = await supabase.auth.signUp(data)
+
   if (error) {
     redirect('/error')
   }
-  redirect('/dashboard')
+
+  revalidatePath('/', 'layout')
+  redirect('/')
 }
