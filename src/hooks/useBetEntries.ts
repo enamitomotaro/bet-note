@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { BetEntry } from '@/lib/types';
 import { toast } from './use-toast'; // トースト表示用のフックを追加
 import { useSupabase } from '@/contexts/SupabaseProvider';
@@ -17,6 +18,7 @@ export function useBetEntries() {
   const { supabase, session } = useSupabase();
   const [entries, setEntries] = useState<BetEntry[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   const mapRow = (row: any): BetEntry => {
     const { profitLoss, roi } = calculateEntryFields(row.stake, row.payout ?? 0);
@@ -35,10 +37,13 @@ export function useBetEntries() {
     if (!session) {
       setEntries([]);
       setIsLoaded(true);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
       return;
     }
 
-    let channel: any;
     const fetchEntries = async () => {
       const { data, error } = await supabase
         .from('bet_entries')
@@ -50,7 +55,10 @@ export function useBetEntries() {
       }
       setIsLoaded(true);
 
-      channel = supabase
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+      channelRef.current = supabase
         .channel('public:bet_entries')
         .on(
           'postgres_changes',
@@ -71,7 +79,10 @@ export function useBetEntries() {
     fetchEntries();
 
     return () => {
-      if (channel) supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [supabase, session]);
 
