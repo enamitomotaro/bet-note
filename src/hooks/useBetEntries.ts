@@ -77,40 +77,67 @@ export function useBetEntries() {
 
   const addEntry = useCallback(async (newEntryData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
     if (!session) return;
-    await insertBetEntry(session.user.id, {
-      date: newEntryData.date,
-      raceName: newEntryData.raceName,
-      betAmount: newEntryData.betAmount,
-      payoutAmount: newEntryData.payoutAmount,
-    });
-    toast({
-      title: '成功',
-      description: 'エントリーが追加されました。',
-    });
+    try {
+      await insertBetEntry(session.user.id, {
+        date: newEntryData.date,
+        raceName: newEntryData.raceName,
+        betAmount: newEntryData.betAmount,
+        payoutAmount: newEntryData.payoutAmount,
+      });
+      toast({
+        title: '成功',
+        description: 'エントリーが追加されました。',
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'エラー',
+        description: 'エントリーの追加に失敗しました。',
+        variant: 'destructive',
+      });
+    }
   }, [session]);
 
   const updateEntry = useCallback(async (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
     if (!session) return;
-    await updateBetEntry(id, session.user.id, {
-      date: updatedData.date,
-      raceName: updatedData.raceName,
-      betAmount: updatedData.betAmount,
-      payoutAmount: updatedData.payoutAmount,
-    });
-    toast({
-      title: '成功',
-      description: 'エントリーが更新されました。',
-    });
+    try {
+      await updateBetEntry(id, session.user.id, {
+        date: updatedData.date,
+        raceName: updatedData.raceName,
+        betAmount: updatedData.betAmount,
+        payoutAmount: updatedData.payoutAmount,
+      });
+      toast({
+        title: '成功',
+        description: 'エントリーが更新されました。',
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'エラー',
+        description: 'エントリーの更新に失敗しました。',
+        variant: 'destructive',
+      });
+    }
   }, [session]);
 
   const deleteEntry = useCallback(async (id: string) => {
     if (!session) return;
-    await deleteBetEntry(id, session.user.id);
-    toast({
-      title: '成功',
-      description: 'エントリーが削除されました。',
-      variant: 'destructive',
-    });
+    try {
+      await deleteBetEntry(id, session.user.id);
+      toast({
+        title: '成功',
+        description: 'エントリーが削除されました。',
+        variant: 'destructive',
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: 'エラー',
+        description: 'エントリーの削除に失敗しました。',
+        variant: 'destructive',
+      });
+    }
   }, [session]);
 
   const loadedEntries = isLoaded ? entries : [];
