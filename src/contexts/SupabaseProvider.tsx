@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { createClient, SupabaseClient, Session } from "@supabase/supabase-js";
+import type { SupabaseClient, Session } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/client";
 
 interface SupabaseContextType {
   supabase: SupabaseClient;
@@ -11,14 +12,7 @@ interface SupabaseContextType {
 const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined);
 
 export const SupabaseProvider = ({ children }: { children: React.ReactNode }) => {
-  const supabase = useMemo(
-    () =>
-      createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
-    []
-  );
+  const supabase = useMemo(() => createClient(), []);
 
   const [session, setSession] = useState<Session | null>(null);
 
