@@ -15,6 +15,12 @@
 
 ---
 
+## RLS ポリシー設計方針
+
+Supabase では、RLS ポリシーの `USING` と `WITH CHECK` を同一条件で設定することが推奨されています。`WITH CHECK` のみだと `UPDATE` 操作で `user_id` などを別ユーザーの値に書き換えられる可能性があるためです。本プロジェクトではすべてのポリシーで `USING auth.uid() = ...` と `WITH CHECK auth.uid() = ...` の両方を定義します。
+
+---
+
 ## テーブル定義
 
 ### 1. bet_entries
