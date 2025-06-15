@@ -21,8 +21,11 @@ export async function signup(formData: FormData) {
   const password = formData.get('password') as string
   const state = crypto.randomUUID()
   const origin =
-    headers().get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-  cookies().set('auth_state', state, {
+    (await headers()).get('origin') ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    'http://localhost:3000'
+  const cookieStore = await cookies()
+  cookieStore.set('auth_state', state, {
     httpOnly: true,
     sameSite: 'lax',
     secure: true,

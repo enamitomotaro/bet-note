@@ -20,9 +20,9 @@ export async function updateSession(request: NextRequest) {
           request.cookies.set({ name, value, ...options })
           response.cookies.set({ name, value, ...options })
         },
-        remove(name: string, options: any) {
-          request.cookies.delete(name, options)
-          response.cookies.delete(name, options)
+        remove(name: string, _options: any) {
+          request.cookies.delete(name)
+          response.cookies.delete(name)
         },
       },
     }
