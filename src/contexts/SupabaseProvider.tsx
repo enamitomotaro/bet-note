@@ -32,6 +32,16 @@ export const SupabaseProvider = ({ children }: { children: React.ReactNode }) =>
     };
   }, [supabase]);
 
+  useEffect(() => {
+    if (session) {
+      document.cookie = `sb-access-token=${session.access_token}; path=/; SameSite=Lax`;
+      document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; SameSite=Lax`;
+    } else {
+      document.cookie = `sb-access-token=; path=/; max-age=0`;
+      document.cookie = `sb-refresh-token=; path=/; max-age=0`;
+    }
+  }, [session]);
+
   return (
     <SupabaseContext.Provider value={{ supabase, session }}>
       {children}
