@@ -8,7 +8,8 @@ import { useBetEntries } from '@/hooks/useBetEntries';
 import { useEffect, useState, useMemo } from 'react';
 import type { BetEntry } from '@/lib/types';
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown, FilterX, CalendarDays, Save, Loader2 } from 'lucide-react'; // Loader2 を追加
+import { ArrowUp, ArrowDown, FilterX, CalendarDays, Save } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import useLocalStorage from '@/hooks/useLocalStorage';
 import type { ComponentType } from 'react';
@@ -115,7 +116,7 @@ function DashboardPageContent() {
   if (!isLoaded || !clientMounted) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-2" data-ai-hint="loading spinner">
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <Spinner key="dashboard-spinner" className="h-8 w-8 text-accent" />
         <p className="text-lg text-muted-foreground">データを読み込み中...</p>
       </div>
     );

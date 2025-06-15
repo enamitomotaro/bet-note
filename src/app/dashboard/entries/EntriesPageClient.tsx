@@ -4,7 +4,7 @@
 import { EntriesTable } from '@/components/EntriesTable';
 import { useBetEntries } from '@/hooks/useBetEntries';
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react'; // Loader2 を追加
+import { Spinner } from '@/components/ui/spinner';
 
 export default function EntriesPageClient() {
   const { entries, addEntry, updateEntry, deleteEntry, isLoaded } = useBetEntries();
@@ -17,7 +17,7 @@ export default function EntriesPageClient() {
   if (!isLoaded || !clientMounted) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-2" data-ai-hint="loading spinner">
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+        <Spinner key="entries-spinner" className="h-8 w-8 text-accent" />
         <p className="text-lg text-muted-foreground">データを読み込み中...</p>
       </div>
     );
