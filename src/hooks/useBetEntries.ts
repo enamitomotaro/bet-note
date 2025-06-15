@@ -36,13 +36,18 @@ export function useBetEntries() {
   };
 
   useEffect(() => {
+    const unsubscribeCurrent = async () => {
+      if (channelRef.current) {
+        await channelRef.current.unsubscribe();
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+
     if (!session) {
       setEntries([]);
       setIsLoaded(true);
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+      unsubscribeCurrent();
       return;
     }
 
@@ -57,11 +62,8 @@ export function useBetEntries() {
       }
       setIsLoaded(true);
 
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        supabase.removeChannel(channelRef.current);
-      }
-      channelRef.current = supabase
+      await unsubscribeCurrent();
+      const newChannel = supabase
         .channel(`public:bet_entries:${session.user.id}`)
         .on(
           'postgres_changes',
@@ -75,18 +77,15 @@ export function useBetEntries() {
               setEntries(prev => prev.filter(e => e.id !== payload.old.id));
             }
           }
-        )
-        .subscribe();
+        );
+      await newChannel.subscribe();
+      channelRef.current = newChannel;
     };
 
     fetchEntries();
 
     return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
+      unsubscribeCurrent();
     };
   }, [supabase, session]);
 
