@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { BetEntry } from '@/lib/types';
 import { toast } from './use-toast'; // トースト表示用のフックを追加
+import { reportErrorToSentry } from '@/utils/sentry';
 import { useSupabase } from '@/contexts/SupabaseProvider';
 import { insertBetEntry, updateBetEntry, deleteBetEntry } from '@/app/actions/betEntries';
 
@@ -103,6 +104,7 @@ export function useBetEntries() {
       return id;
     } catch (error) {
       console.error(error);
+      reportErrorToSentry(error);
       toast({
         title: 'エラー',
         description: 'エントリーの追加に失敗しました。',
@@ -126,6 +128,7 @@ export function useBetEntries() {
       });
     } catch (error) {
       console.error(error);
+      reportErrorToSentry(error);
       toast({
         title: 'エラー',
         description: 'エントリーの更新に失敗しました。',
@@ -145,6 +148,7 @@ export function useBetEntries() {
       });
     } catch (error) {
       console.error(error);
+      reportErrorToSentry(error);
       toast({
         title: 'エラー',
         description: 'エントリーの削除に失敗しました。',
