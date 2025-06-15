@@ -90,7 +90,7 @@ export function useBetEntries() {
   const addEntry = useCallback(async (newEntryData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
     if (!session) return;
     try {
-      await insertBetEntry({
+      const id = await insertBetEntry({
         date: newEntryData.date,
         raceName: newEntryData.raceName,
         betAmount: newEntryData.betAmount,
@@ -100,6 +100,7 @@ export function useBetEntries() {
         title: '成功',
         description: 'エントリーが追加されました。',
       });
+      return id;
     } catch (error) {
       console.error(error);
       toast({

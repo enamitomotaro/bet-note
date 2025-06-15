@@ -23,12 +23,17 @@ function mapToDb(userId: string, data: EntryBase) {
   };
 }
 
-export async function insertBetEntry(data: EntryBase) {
+export async function insertBetEntry(data: EntryBase): Promise<string> {
   const supabase = getClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw authError ?? new Error('Unauthorized');
-  const { error } = await supabase.from('bet_entries').insert(mapToDb(user.id, data));
+  const { data: inserted, error } = await supabase
+    .from('bet_entries')
+    .insert(mapToDb(user.id, data))
+    .select('id')
+    .single();
   if (error) throw error;
+  return inserted.id;
 }
 
 export async function updateBetEntry(id: string, data: EntryBase) {
