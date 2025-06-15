@@ -89,6 +89,13 @@ function DashboardPageContent() {
     return tempEntries;
   }, [allEntries, startDate, endDate, isLoaded, clientMounted]);
 
+  // 並び替えたエントリーをメモ化して参照の安定化を図る
+  const sortedEntries = useMemo(() => {
+    return [...filteredEntries].sort((a, b) =>
+      parseISO(a.date).getTime() - parseISO(b.date).getTime()
+    );
+  }, [filteredEntries]);
+
   const moveCardInDialog = (index: number, direction: 'up' | 'down') => {
     const newOrder = [...tempCardOrder];
     if (direction === 'up' && index > 0) {
@@ -123,12 +130,12 @@ function DashboardPageContent() {
   }
 
   const componentsToRender = {
-    stats: { component: DashboardCards, props: { entries: filteredEntries } },
-    chart: { component: ProfitChart, props: { entries: filteredEntries } },
+    stats: { component: DashboardCards, props: { entries: sortedEntries } },
+    chart: { component: ProfitChart, props: { entries: sortedEntries } },
     table: {
       component: EntriesTable,
       props: {
-        entries: filteredEntries,
+        entries: sortedEntries,
         onDeleteEntry: deleteEntry,
         onUpdateEntry: updateEntry,
         displayLimit: 5,
