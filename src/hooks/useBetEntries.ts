@@ -39,7 +39,7 @@ export function useBetEntries() {
       setEntries([]);
       setIsLoaded(true);
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        channelRef.current.unsubscribe();
         channelRef.current = null;
       }
       return;
@@ -57,10 +57,10 @@ export function useBetEntries() {
       setIsLoaded(true);
 
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        channelRef.current.unsubscribe();
       }
       channelRef.current = supabase
-        .channel('public:bet_entries')
+        .channel(`public:bet_entries:${session.user.id}`)
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'bet_entries', filter: `user_id=eq.${session.user.id}` },
@@ -81,7 +81,7 @@ export function useBetEntries() {
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        channelRef.current.unsubscribe();
         channelRef.current = null;
       }
     };
