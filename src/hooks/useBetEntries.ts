@@ -38,6 +38,7 @@ export function useBetEntries() {
       return;
     }
 
+    // Supabase のチャンネルを保持するローカル変数
     let channel: any;
     const fetchEntries = async () => {
       const { data, error } = await supabase
