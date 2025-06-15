@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/server';
 
 type EntryBase = {
   date: string;
@@ -10,10 +10,7 @@ type EntryBase = {
 };
 
 function getClient() {
-  return createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  return createClient();
 }
 
 function mapToDb(userId: string, data: EntryBase) {
@@ -26,35 +23,43 @@ function mapToDb(userId: string, data: EntryBase) {
   };
 }
 
-export async function insertBetEntry(userId: string, data: EntryBase) {
+export async function insertBetEntry(data: EntryBase) {
   const supabase = getClient();
-  const { error } = await supabase.from('bet_entries').insert(mapToDb(userId, data));
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw authError ?? new Error('Unauthorized');
+  const { error } = await supabase.from('bet_entries').insert(mapToDb(user.id, data));
   if (error) throw error;
 }
 
-export async function updateBetEntry(id: string, userId: string, data: EntryBase) {
+export async function updateBetEntry(id: string, data: EntryBase) {
   const supabase = getClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw authError ?? new Error('Unauthorized');
   const { error } = await supabase
     .from('bet_entries')
-    .update(mapToDb(userId, data))
+    .update(mapToDb(user.id, data))
     .eq('id', id)
-    .eq('user_id', userId);
+    .eq('user_id', user.id);
   if (error) throw error;
 }
 
-export async function deleteBetEntry(id: string, userId: string) {
+export async function deleteBetEntry(id: string) {
   const supabase = getClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw authError ?? new Error('Unauthorized');
   const { error } = await supabase
     .from('bet_entries')
     .delete()
     .eq('id', id)
-    .eq('user_id', userId);
+    .eq('user_id', user.id);
   if (error) throw error;
 }
 
-export async function bulkInsertBetEntries(userId: string, data: EntryBase[]) {
+export async function bulkInsertBetEntries(data: EntryBase[]) {
   const supabase = getClient();
-  const rows = data.map(d => mapToDb(userId, d));
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw authError ?? new Error('Unauthorized');
+  const rows = data.map(d => mapToDb(user.id, d));
   const { error } = await supabase.from('bet_entries').insert(rows);
   if (error) throw error;
 }
