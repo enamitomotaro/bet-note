@@ -26,11 +26,29 @@ const actionTypes = {
   REMOVE_TOAST: "REMOVE_TOAST",
 } as const
 
-let count = 0
+/**
+ * HMR 時に状態がリークしないように globalThis にストアを保持する
+ */
+interface ToastStore {
+  count: number
+  toastTimeouts: Map<string, ReturnType<typeof setTimeout>>
+  listeners: Array<(state: State) => void>
+  state: State
+}
+
+const defaultToastStore: ToastStore = {
+  count: 0,
+  toastTimeouts: new Map(),
+  listeners: [],
+  state: { toasts: [] },
+}
+
+const toastStore: ToastStore =
+  (globalThis as any).__toastStore ?? ((globalThis as any).__toastStore = defaultToastStore)
 
 function genId() {
-  count = (count + 1) % Number.MAX_SAFE_INTEGER
-  return count.toString()
+  toastStore.count = (toastStore.count + 1) % Number.MAX_SAFE_INTEGER
+  return toastStore.count.toString()
 }
 
 type ActionType = typeof actionTypes
@@ -57,7 +75,7 @@ interface State {
   toasts: ToasterToast[]
 }
 
-const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+const toastTimeouts = toastStore.toastTimeouts
 
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
@@ -129,12 +147,13 @@ export const reducer = (state: State, action: Action): State => {
   }
 }
 
-const listeners: Array<(state: State) => void> = []
+const listeners = toastStore.listeners
 
-let memoryState: State = { toasts: [] }
+let memoryState = toastStore.state
 
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action)
+  toastStore.state = memoryState
   listeners.forEach((listener) => {
     listener(memoryState)
   })
@@ -182,7 +201,7 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, [])
 
   return {
     ...state,
