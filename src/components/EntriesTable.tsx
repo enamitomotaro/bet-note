@@ -139,11 +139,11 @@ export function EntriesTable({
         let bValue = b[sortConfig.key as keyof BetEntry];
 
         if (sortConfig.key === 'profitLoss') {
-            aValue = a.payoutAmount - a.betAmount;
-            bValue = b.payoutAmount - b.betAmount;
+            aValue = (a.payoutAmount ?? 0) - a.betAmount;
+            bValue = (b.payoutAmount ?? 0) - b.betAmount;
         } else if (sortConfig.key === 'roi') {
-            aValue = a.betAmount > 0 ? (a.payoutAmount / a.betAmount) * 100 : 0;
-            bValue = b.betAmount > 0 ? (b.payoutAmount / b.betAmount) * 100 : 0;
+            aValue = a.betAmount > 0 ? ((a.payoutAmount ?? 0) / a.betAmount) * 100 : 0;
+            bValue = b.betAmount > 0 ? ((b.payoutAmount ?? 0) / b.betAmount) * 100 : 0;
         }
 
 
@@ -188,7 +188,7 @@ export function EntriesTable({
     }
 
     const currentTotalBetAmount = sourceForTotals.reduce((sum, entry) => sum + entry.betAmount, 0);
-    const currentTotalPayoutAmount = sourceForTotals.reduce((sum, entry) => sum + entry.payoutAmount, 0);
+    const currentTotalPayoutAmount = sourceForTotals.reduce((sum, entry) => sum + (entry.payoutAmount ?? 0), 0);
     const currentTotalProfitLoss = currentTotalPayoutAmount - currentTotalBetAmount;
     const currentOverallRecoveryRate = currentTotalBetAmount > 0 ? (currentTotalPayoutAmount / currentTotalBetAmount) * 100 : 0;
 
@@ -427,11 +427,11 @@ export function EntriesTable({
                         <TableCell>{isValid(parseISO(entry.date)) ? format(parseISO(entry.date), "yyyy/MM/dd") : '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">{entry.raceName || "-"}</TableCell>
                         <TableCell className="text-right whitespace-nowrap">{formatCurrency(entry.betAmount)}</TableCell>
-                        <TableCell className="text-right whitespace-nowrap">{formatCurrency(entry.payoutAmount)}</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">{entry.payoutAmount === null ? '–' : formatCurrency(entry.payoutAmount)}</TableCell>
                         <TableCell className={`text-right font-medium whitespace-nowrap ${entry.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatCurrency(entry.profitLoss)}
+                          {entry.payoutAmount === null ? '–' : formatCurrency(entry.profitLoss)}
                         </TableCell>
-                        <TableCell className="text-right whitespace-nowrap">{formatPercentage(entry.roi)}</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">{entry.payoutAmount === null ? '–' : formatPercentage(entry.roi)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

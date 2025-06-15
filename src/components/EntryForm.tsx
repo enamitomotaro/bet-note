@@ -29,7 +29,10 @@ const formSchema = z.object({
   }),
   raceName: z.string().optional(),
   betAmount: z.coerce.number().min(1, { message: "1円以上の掛け金を入力してください。" }).step(100),
-  payoutAmount: z.coerce.number().min(0, { message: "0円以上の払戻金を入力してください。" }).step(10),
+  payoutAmount: z.preprocess(
+    (v) => v === '' || v === undefined || v === null ? null : Number(v),
+    z.number().min(0, { message: "0円以上の払戻金を入力してください。" }).step(10).nullable()
+  ),
 });
 
 type EntryFormValues = z.infer<typeof formSchema>;
@@ -59,7 +62,7 @@ export function EntryForm({
       date: initialData ? parseISO(initialData.date) : new Date(),
       raceName: initialData?.raceName || "",
       betAmount: initialData?.betAmount || 100,
-      payoutAmount: initialData?.payoutAmount || 0,
+      payoutAmount: initialData?.payoutAmount ?? null,
     },
   });
 
@@ -76,7 +79,7 @@ export function EntryForm({
         date: new Date(),
         raceName: "",
         betAmount: 100,
-        payoutAmount: 0,
+        payoutAmount: null,
       });
     }
   }, [initialData, form, isEditMode]);
@@ -95,7 +98,7 @@ export function EntryForm({
           date: new Date(),
           raceName: "",
           betAmount: 100,
-          payoutAmount: 0,
+          payoutAmount: null,
         });
       }
     }
@@ -197,7 +200,7 @@ export function EntryForm({
                   <FormItem>
                     <FormLabel>払戻金 (円)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="1500" step="10" {...field} />
+                      <Input type="number" placeholder="1500" step="10" value={field.value ?? ''} onChange={field.onChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -212,7 +215,7 @@ export function EntryForm({
                       date: new Date(),
                       raceName: "",
                       betAmount: 100,
-                      payoutAmount: 0,
+                      payoutAmount: null,
                     });
                   }}>
                     リセット

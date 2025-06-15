@@ -32,7 +32,7 @@ Supabase では、RLS ポリシーの `USING` と `WITH CHECK` を同一条件�
 | date        | `date`                     | NOT NULL                                | レース日        |
 | race_name   | `text`                     | NOT NULL, DEFAULT ''                    | レース名        |
 | stake       | `numeric`                  | NOT NULL                                | 賭け金          |
-| payout      | `numeric`                  | NOT NULL, DEFAULT 0                     | 払戻金          |
+| payout      | `numeric`                  | DEFAULT NULL                            | 払戻金 (未確定は NULL) |
 | inserted_at | `timestamp with time zone` | DEFAULT now()                           | 作成日時        |
 | updated_at  | `timestamp with time zone` | DEFAULT now(), トリガーで自動更新       | 更新日時        |
 

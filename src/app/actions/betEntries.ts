@@ -6,7 +6,7 @@ type EntryBase = {
   date: string;
   raceName?: string;
   betAmount: number;
-  payoutAmount: number;
+  payoutAmount: number | null;
 };
 
 function getClient() {

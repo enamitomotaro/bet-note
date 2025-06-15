@@ -9,13 +9,14 @@ export function calculateStats(entries: BetEntry[]): DashboardStats {
   let maxPayoutPerRace = 0;
 
   entries.forEach(entry => {
+    const payout = entry.payoutAmount ?? 0;
     totalInvestment += entry.betAmount;
-    totalPayout += entry.payoutAmount;
-    if (entry.payoutAmount > entry.betAmount) { // 払戻金が掛け金を上回れば的中
+    totalPayout += payout;
+    if (payout > entry.betAmount) { // 払戻金が掛け金を上回れば的中
       winningEntryCount++;
     }
-    if (entry.payoutAmount > maxPayoutPerRace) {
-      maxPayoutPerRace = entry.payoutAmount;
+    if (payout > maxPayoutPerRace) {
+      maxPayoutPerRace = payout;
     }
   });
 
@@ -129,7 +130,7 @@ export function prepareCumulativeProfitChartData(entries: BetEntry[], timespan: 
 export function calculateAverageRecoveryRate(entries: BetEntry[]): number {
   if (entries.length === 0) return 0;
   const totalInvestment = entries.reduce((sum, entry) => sum + entry.betAmount, 0);
-  const totalPayout = entries.reduce((sum, entry) => sum + entry.payoutAmount, 0);
+  const totalPayout = entries.reduce((sum, entry) => sum + (entry.payoutAmount ?? 0), 0);
   if (totalInvestment === 0) return 0;
   // 回収率 = (総払戻額 / 総投資額) * 100
   return (totalPayout / totalInvestment) * 100;
