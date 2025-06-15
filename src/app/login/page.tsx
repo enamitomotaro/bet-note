@@ -1,20 +1,14 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import AuthDialog from "@/components/AuthDialog";
-import { useSupabase } from "@/contexts/SupabaseProvider";
+import { login, signup } from './actions'
 
 export default function LoginPage() {
-  const { session } = useSupabase();
-  const router = useRouter();
-  const [open, setOpen] = useState(true);
-
-  useEffect(() => {
-    if (session) {
-      router.replace("/dashboard");
-    }
-  }, [session, router]);
-
-  return <AuthDialog open={open} onOpenChange={(o) => setOpen(o)} />;
+  return (
+    <form>
+      <label htmlFor="email">Email:</label>
+      <input id="email" name="email" type="email" required />
+      <label htmlFor="password">Password:</label>
+      <input id="password" name="password" type="password" required />
+      <button formAction={login}>Log in</button>
+      <button formAction={signup}>Sign up</button>
+    </form>
+  )
 }
