@@ -30,25 +30,22 @@ function useLocalStorage<T>(
     }
   }, [key]);
 
+  const serialized = JSON.stringify(storedValue);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        const valueToProcess =
-          typeof storedValue === "function"
-            ? (storedValue as Function)(storedValue)
-            : storedValue;
-
-        if (valueToProcess === undefined) {
+        if (storedValue === undefined) {
           // undefined の場合は文字列 "undefined" を保存しないよう削除
           window.localStorage.removeItem(key);
         } else {
-          window.localStorage.setItem(key, JSON.stringify(valueToProcess));
+          window.localStorage.setItem(key, serialized);
         }
       } catch (error) {
         console.error(`Error setting localStorage key "${key}":`, error);
       }
     }
-  }, [key, storedValue]);
+  }, [key, serialized]);
 
   return [storedValue, setStoredValue];
 }
