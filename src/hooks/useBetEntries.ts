@@ -88,7 +88,7 @@ export function useBetEntries() {
 
   const addEntry = useCallback(async (newEntryData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
     if (!session) return;
-    await insertBetEntry(session.user.id, {
+    await insertBetEntry({
       date: newEntryData.date,
       raceName: newEntryData.raceName,
       betAmount: newEntryData.betAmount,
@@ -102,7 +102,7 @@ export function useBetEntries() {
 
   const updateEntry = useCallback(async (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
     if (!session) return;
-    await updateBetEntry(id, session.user.id, {
+    await updateBetEntry(id, {
       date: updatedData.date,
       raceName: updatedData.raceName,
       betAmount: updatedData.betAmount,
@@ -116,7 +116,7 @@ export function useBetEntries() {
 
   const deleteEntry = useCallback(async (id: string) => {
     if (!session) return;
-    await deleteBetEntry(id, session.user.id);
+    await deleteBetEntry(id);
     toast({
       title: '成功',
       description: 'エントリーが削除されました。',
