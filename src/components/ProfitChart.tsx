@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useId } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,6 +33,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
   const [timespan, setTimespan] = useState<ProfitChartTimespan>("daily");
   const [chartType, setChartType] = useState<ChartType>("period");
   const [clientMounted, setClientMounted] = useState(false);
+  const gradientId = useId();
 
   useEffect(() => {
     setClientMounted(true);
@@ -101,7 +102,7 @@ export function ProfitChart({ entries }: ProfitChartProps) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
               <defs>
-                <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.8}/>
                   <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
                 </linearGradient>
@@ -122,12 +123,12 @@ export function ProfitChart({ entries }: ProfitChartProps) {
                 tickFormatter={(value) => `${formatCurrency(value)}`}
               />
               <Tooltip content={<CustomTooltip chartType={chartType} />} cursor={{ fill: 'hsl(var(--accent) / 0.1)' }}/>
-              <Area 
+              <Area
                 type="monotone" 
                 dataKey="value" 
                 stroke="hsl(var(--accent))" 
                 fillOpacity={1} 
-                fill="url(#colorProfit)" 
+                fill={`url(#${gradientId})`}
                 strokeWidth={2} 
                 name={chartType === "period" ? "期間別損益" : "累積損益"}
               />
