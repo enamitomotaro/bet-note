@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type') as EmailOtpType | null
   const next = searchParams.get('next') ?? '/'
   const state = searchParams.get('state')
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const storedState = cookieStore.get('auth_state')?.value
   if (token_hash && type && state && storedState === state) {
     const supabase = await createClient()
