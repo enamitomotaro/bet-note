@@ -3,7 +3,7 @@ export interface BetEntry {
   date: string; // ISO 形式 "YYYY-MM-DD"
   raceName?: string;
   betAmount: number;
-  payoutAmount: number;
+  payoutAmount: number | null;
   profitLoss: number; // 払戻金 - 掛け金 で計算
   roi: number; // (payoutAmount / betAmount) * 100 で計算した回収率。betAmount が 0 の場合も考慮
 }

@@ -8,9 +8,10 @@ import { toast } from './use-toast'; // トースト表示用のフックを追�
 import { useSupabase } from '@/contexts/SupabaseProvider';
 import { insertBetEntry, updateBetEntry, deleteBetEntry } from '@/app/actions/betEntries';
 
-const calculateEntryFields = (betAmount: number, payoutAmount: number): Pick<BetEntry, 'profitLoss' | 'roi'> => {
-  const profitLoss = payoutAmount - betAmount;
-  const roi = betAmount > 0 ? (payoutAmount / betAmount) * 100 : 0; // 個別の回収率
+const calculateEntryFields = (betAmount: number, payoutAmount: number | null): Pick<BetEntry, 'profitLoss' | 'roi'> => {
+  const payout = payoutAmount ?? 0;
+  const profitLoss = payout - betAmount;
+  const roi = betAmount > 0 ? (payout / betAmount) * 100 : 0; // 個別の回収率
   return { profitLoss, roi };
 };
 
@@ -21,13 +22,13 @@ export function useBetEntries() {
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   const mapRow = (row: any): BetEntry => {
-    const { profitLoss, roi } = calculateEntryFields(row.stake, row.payout ?? 0);
+    const { profitLoss, roi } = calculateEntryFields(row.stake, row.payout);
     return {
       id: row.id,
       date: row.date,
       raceName: row.race_name,
       betAmount: row.stake,
-      payoutAmount: row.payout ?? 0,
+      payoutAmount: row.payout,
       profitLoss,
       roi,
     };
