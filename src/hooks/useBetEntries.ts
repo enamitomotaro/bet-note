@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { BetEntry } from '@/lib/types';
 import { toast } from './use-toast'; // トースト表示用のフックを追加
 import { useSupabase } from '@/contexts/SupabaseProvider';
@@ -17,6 +18,8 @@ export function useBetEntries() {
   const { supabase, session } = useSupabase();
   const [entries, setEntries] = useState<BetEntry[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  // Supabase チャンネルを保持する ref
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   const mapRow = (row: any): BetEntry => {
     const { profitLoss, roi } = calculateEntryFields(row.stake, row.payout ?? 0);
@@ -38,8 +41,6 @@ export function useBetEntries() {
       return;
     }
 
-    // Supabase のチャンネルを保持するローカル変数
-    let channel: any;
     const fetchEntries = async () => {
       const { data, error } = await supabase
         .from('bet_entries')
@@ -51,7 +52,10 @@ export function useBetEntries() {
       }
       setIsLoaded(true);
 
-      channel = supabase
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+      channelRef.current = supabase
         .channel('public:bet_entries')
         .on(
           'postgres_changes',
@@ -72,14 +76,17 @@ export function useBetEntries() {
     fetchEntries();
 
     return () => {
-      if (channel) supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [supabase, session]);
 
   const addEntry = useCallback(async (newEntryData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
     if (!session) return;
     try {
-      await insertBetEntry(session.user.id, {
+      await insertBetEntry({
         date: newEntryData.date,
         raceName: newEntryData.raceName,
         betAmount: newEntryData.betAmount,
@@ -102,7 +109,7 @@ export function useBetEntries() {
   const updateEntry = useCallback(async (id: string, updatedData: Omit<BetEntry, 'id' | 'profitLoss' | 'roi'>) => {
     if (!session) return;
     try {
-      await updateBetEntry(id, session.user.id, {
+      await updateBetEntry(id, {
         date: updatedData.date,
         raceName: updatedData.raceName,
         betAmount: updatedData.betAmount,
@@ -125,7 +132,7 @@ export function useBetEntries() {
   const deleteEntry = useCallback(async (id: string) => {
     if (!session) return;
     try {
-      await deleteBetEntry(id, session.user.id);
+      await deleteBetEntry(id);
       toast({
         title: '成功',
         description: 'エントリーが削除されました。',
