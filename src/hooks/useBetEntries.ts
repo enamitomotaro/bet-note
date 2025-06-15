@@ -59,6 +59,7 @@ export function useBetEntries() {
 
       if (channelRef.current) {
         channelRef.current.unsubscribe();
+        supabase.removeChannel(channelRef.current);
       }
       channelRef.current = supabase
         .channel(`public:bet_entries:${session.user.id}`)
@@ -83,6 +84,7 @@ export function useBetEntries() {
     return () => {
       if (channelRef.current) {
         channelRef.current.unsubscribe();
+        supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
     };
