@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     sameSite: 'lax' as const,
+    maxAge: 60 * 60 * 24 * 7,
   }
   if (access_token && refresh_token) {
     cookies().set('sb-access-token', access_token, opts)
