@@ -93,7 +93,6 @@ export function ProfitChart({ entries }: ProfitChartProps) {
                 <TabsTrigger value="monthly" className="text-xs px-3 py-1.5">月次</TabsTrigger>
                 </TabsList>
             </Tabs>
-            {/* 固定表示していた「期間: すべて」の文言を削除 */}
           </div>
         </div>
       </CardHeader>
